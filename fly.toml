@@ -1,0 +1,36 @@
+# ═══════════════════════════════════════════════════════════════
+# Fly.io Configuration — Project STAR Safeguarding Course
+# ═══════════════════════════════════════════════════════════════
+# To deploy:
+#   1. Install flyctl: https://fly.io/docs/getting-started/installing-flyctl/
+#   2. Run: fly auth login
+#   3. Run: fly launch  (creates app — say NO to existing postgres if asked)
+#   4. Create Postgres: fly postgres create --name project-star-db --region lhr
+#   5. Attach to app:   fly postgres attach project-star-db
+#      (this auto-sets DATABASE_URL in your app secrets)
+#   6. Set admin pass:  fly secrets set ADMIN_PASSPHRASE="YourPassphrase"
+#   7. Deploy:          fly deploy
+#
+# The schema.sql will auto-run on first startup.
+# For updates: just run `fly deploy` again
+# ═══════════════════════════════════════════════════════════════
+
+app = "project-star-safeguarding"
+primary_region = "lhr"   # London — closest to Nigeria
+
+[build]
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

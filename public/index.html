@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project STAR Safeguarding Course</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/css/auth.css">
+
+<!-- CRITICAL CSS FIX FOR ADMIN DASHBOARD -->
+<style>
+/* Force admin dashboard visibility when active */
+.tracker-screen {
+  display: none !important;
+  position: absolute;
+  left: -99999px;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.tracker-screen.active {
+  display: block !important;
+  position: relative !important;
+  left: 0 !important;
+  top: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 1 !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  background-color: #f8f9fb !important;
+  padding: 2rem !important;
+}
+
+.tracker-screen.active * {
+  visibility: visible !important;
+}
+
+/* Hide other screens when admin is active */
+body.admin-mode #loginScreen,
+body.admin-mode #splash,
+body.admin-mode #dashboard,
+body.admin-mode #moduleContainer,
+body.admin-mode #certificate,
+body.admin-mode #topbar {
+  display: none !important;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar">
+   <div class="topbar-logo"><img src="https://res.cloudinary.com/the-tom-media/image/upload/v1770987917/logo_rxhfca.jpg" class="star-logo-sm" alt="Project STAR LGS"> Project STAR</div>
+  <div class="topbar-progress"><div class="topbar-progress-fill" id="progressFill"></div></div>
+  <div class="topbar-pct" id="progressPct">0%</div>
+  <button class="btn btn-sm btn-outline" onclick="showDashboard()">Dashboard</button>
+</div>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <img src="https://res.cloudinary.com/the-tom-media/image/upload/v1770987917/logo_rxhfca.jpg" id="loginLogo" alt="Project STAR LGS">
+    <h2>Safeguarding Training</h2>
+    <p class="login-sub">Sign in to access your training</p>
+    <div class="login-error" id="loginError"></div>
+
+    <div class="login-field">
+      <label for="loginStaffId">Admission Number / Email</label>
+      <input type="text" id="loginStaffId" placeholder="e.g. ADM/2024/001 or student@lgs.sch.ng" autocomplete="username">
+    </div>
+
+    <div class="login-field">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+    </div>
+
+    <button class="login-btn" id="loginBtn">Sign In →</button>
+
+    <div class="login-links">
+      <a onclick="showForgotPassword()">Forgot password?</a>
+      <span style="color: var(--text-muted)">·</span>
+      <a onclick="showRegistration()">Create account</a>
+    </div>
+
+    <div class="login-divider">or</div>
+    <a class="login-admin-link" id="adminLoginLink">Admin / Tracker Access</a>
+  </div>
+</div>
+
+<!-- ═══════════ REGISTRATION SCREEN ═══════════ -->
+<div class="login-screen" id="registrationScreen" style="display:none">
+  <div class="login-card">
+    <img src="https://res.cloudinary.com/the-tom-media/image/upload/v1770987917/logo_rxhfca.jpg" id="regLogo" alt="Project STAR LGS">
+    <h2>Create Account</h2>
+    <p class="login-sub">Register for Project STAR Safeguarding Training</p>
+    <div class="login-error" id="regError"></div>
+
+    <div class="login-field">
+      <label for="regName">Full Name *</label>
+      <input type="text" id="regName" placeholder="e.g. Bukola Adeleke" autocomplete="name" required>
+    </div>
+
+    <div class="login-field">
+      <label for="regEmail">Email Address *</label>
+      <input type="email" id="regEmail" placeholder="e.g. bukola.adeleke@lgs.sch.ng" autocomplete="email" required>
+    </div>
+
+    <div class="login-field">
+      <label for="regStaffId">Admission Number *</label>
+      <input type="text" id="regStaffId" placeholder="e.g. ADM/2024/001" autocomplete="off" required>
+      <div class="field-hint">This will be your unique login identifier</div>
+    </div>
+
+    <div class="login-field">
+      <label for="regRole">Class / Year *</label>
+      <select id="regRole" required>
+        <option value="">Select your class...</option>
+        <option value="JSS 1">JSS 1</option>
+        <option value="JSS 2">JSS 2</option>
+        <option value="JSS 3">JSS 3</option>
+        <option value="SS 1">SS 1</option>
+        <option value="SS 2">SS 2</option>
+        <option value="SS 3">SS 3</option>
+        <option value="Staff">Staff</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="login-field">
+      <label for="regPassword">Password *</label>
+      <input type="password" id="regPassword" placeholder="Create a strong password" autocomplete="new-password" required>
+      <div class="password-requirements" id="passwordReqs">
+        <div class="req" id="req-length">✓ At least 8 characters</div>
+        <div class="req" id="req-upper">✓ One uppercase letter</div>
+        <div class="req" id="req-lower">✓ One lowercase letter</div>
+        <div class="req" id="req-number">✓ One number</div>
+      </div>
+    </div>
+
+    <div class="login-field">
+      <label for="regPasswordConfirm">Confirm Password *</label>
+      <input type="password" id="regPasswordConfirm" placeholder="Re-enter your password" autocomplete="new-password" required>
+    </div>
+
+    <button class="login-btn" id="regBtn">Create Account →</button>
+
+    <div class="login-links">
+      <a onclick="showLogin()">← Back to Sign In</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SET PASSWORD SCREEN (Existing Students) ═══════════ -->
+<div class="login-screen" id="setPasswordScreen" style="display:none">
+  <div class="login-card">
+    <img src="https://res.cloudinary.com/the-tom-media/image/upload/v1770987917/logo_rxhfca.jpg" id="setPwdLogo" alt="Project STAR LGS">
+    <h2>Set Your Password</h2>
+    <p class="login-sub">Welcome! Please set a password to secure your account.</p>
+    <div class="login-error" id="setPwdError"></div>
+
+    <div class="login-info-box">
+      <strong id="setPwdUserName"></strong><br>
+      <span id="setPwdUserEmail" style="color: var(--text-light); font-size: 0.9em;"></span>
+    </div>
+
+    <div class="login-field">
+      <label for="setPwdPassword">New Password *</label>
+      <input type="password" id="setPwdPassword" placeholder="Create a strong password" autocomplete="new-password" required>
+      <div class="password-requirements" id="setPwdReqs">
+        <div class="req" id="setpwd-req-length">✓ At least 8 characters</div>
+        <div class="req" id="setpwd-req-upper">✓ One uppercase letter</div>
+        <div class="req" id="setpwd-req-lower">✓ One lowercase letter</div>
+        <div class="req" id="setpwd-req-number">✓ One number</div>
+      </div>
+    </div>
+
+    <div class="login-field">
+      <label for="setPwdPasswordConfirm">Confirm Password *</label>
+      <input type="password" id="setPwdPasswordConfirm" placeholder="Re-enter your password" autocomplete="new-password" required>
+    </div>
+
+    <input type="hidden" id="setPwdStaffId">
+
+    <button class="login-btn" id="setPwdBtn">Set Password & Continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════ FORGOT PASSWORD SCREEN ═══════════ -->
+<div class="login-screen" id="forgotPasswordScreen" style="display:none">
+  <div class="login-card">
+    <img src="https://res.cloudinary.com/the-tom-media/image/upload/v1770987917/logo_rxhfca.jpg" id="forgotPwdLogo" alt="Project STAR LGS">
+    <h2>Reset Password</h2>
+    <p class="login-sub">Enter your email address and we'll send you a reset link</p>
+    <div class="login-error" id="forgotPwdError"></div>
+    <div class="login-success" id="forgotPwdSuccess" style="display:none"></div>
+
+    <div class="login-field">
+      <label for="forgotPwdEmail">Email Address</label>
+      <input type="email" id="forgotPwdEmail" placeholder="e.g. student@lgs.sch.ng" autocomplete="email">
+    </div>
+
+    <button class="login-btn" id="forgotPwdBtn">Send Reset Link →</button>
+
+    <div class="login-links">
+      <a onclick="showLogin()">← Back to Sign In</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ RESET PASSWORD SCREEN (With Token) ═══════════ -->
+<div class="login-screen" id="resetPasswordScreen" style="display:none">
+  <div class="login-card">
+    <img src="https://res.cloudinary.com/the-tom-media/image/upload/v1770987917/logo_rxhfca.jpg" id="resetPwdLogo" alt="Project STAR LGS">
+    <h2>Create New Password</h2>
+    <p class="login-sub" id="resetPwdWelcome">Enter your new password below</p>
+    <div class="login-error" id="resetPwdError"></div>
+
+    <div class="login-field">
+      <label for="resetPwdPassword">New Password *</label>
+      <input type="password" id="resetPwdPassword" placeholder="Create a strong password" autocomplete="new-password" required>
+      <div class="password-requirements" id="resetPwdReqs">
+        <div class="req" id="resetpwd-req-length">✓ At least 8 characters</div>
+        <div class="req" id="resetpwd-req-upper">✓ One uppercase letter</div>
+        <div class="req" id="resetpwd-req-lower">✓ One lowercase letter</div>
+        <div class="req" id="resetpwd-req-number">✓ One number</div>
+      </div>
+    </div>
+
+    <div class="login-field">
+      <label for="resetPwdPasswordConfirm">Confirm Password *</label>
+      <input type="password" id="resetPwdPasswordConfirm" placeholder="Re-enter your password" autocomplete="new-password" required>
+    </div>
+
+    <input type="hidden" id="resetPwdToken">
+
+    <button class="login-btn" id="resetPwdBtn">Reset Password →</button>
+  </div>
+</div>
+
+<div id="adminLoginOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:1rem">
+  <div class="login-card" style="max-width:380px">
+    <h2 style="font-size:1.3rem;margin-bottom:1rem">Admin Access</h2>
+    <div class="login-error" id="adminError"></div>
+    <div class="login-field">
+      <label for="adminPass">Admin Passphrase</label>
+      <input type="password" id="adminPass" placeholder="Enter admin passphrase" onkeydown="if(event.key==='Enter')handleAdminLogin()">
+    </div>
+    <button class="login-btn" onclick="handleAdminLogin()">Access Tracker →</button>
+    <br><a class="login-admin-link" onclick="hideAdminLogin()" style="margin-top:.8rem">← Back</a>
+  </div>
+</div>
+
+<div class="splash" id="splash">
+  <div class="splash-inner">
+    <div class="splash-badge">Interactive Training Course</div>
+    <h1>Project STAR<br>Safeguarding Course</h1>
+    <p>A comprehensive interactive training programme covering child protection, digital safety, reporting procedures, and your responsibilities under the Project STAR Safeguarding Policy.</p>
+    <div class="splash-stats">
+      <div class="splash-stat"><strong>8</strong><span>Modules</span></div>
+      <div class="splash-stat"><strong>40</strong><span>Questions</span></div>
+      <div class="splash-stat"><strong>~3hrs</strong><span>Duration</span></div>
+    </div>
+    <button class="btn btn-primary" id="beginCourse" style="animation:fadeDown .8s ease .4s both">
+      Begin Course →
+    </button>
+  </div>
+</div>
+
+<div class="course" id="dashboard">
+  <div class="dashboard-header">
+    <h2>Course Dashboard</h2>
+    <p style="color:var(--text-light)">Track your progress through all 8 modules</p>
+    <div class="progress-ring">
+      <svg width="130" height="130">
+        <circle class="bg" cx="65" cy="65" r="55"></circle>
+        <circle class="fg" id="ringFg" cx="65" cy="65" r="55" stroke-dasharray="345.58" stroke-dashoffset="345.58"></circle>
+      </svg>
+      <div class="pct" id="ringPct">0%</div>
+    </div>
+  </div>
+  <div class="module-nav" id="moduleNav"></div>
+</div>
+
+<div class="course" id="moduleContainer"></div>
+
+<div class="certificate" id="certificate">
+  <div class="cert-frame">
+    <h2>Certificate of Completion</h2>
+    <p class="cert-sub">Project STAR Safeguarding Training</p>
+    <div class="cert-name" id="certName">Learner</div>
+    <p class="cert-detail">has successfully completed the</p>
+    <p class="cert-detail"><strong>Project STAR Safeguarding Interactive Course</strong></p>
+    <p class="cert-detail">covering child protection, digital safety, reporting procedures,<br>and safeguarding governance across all programme areas.</p>
+    <p class="cert-date" id="certDate"></p>
+    <div style="margin-top:2rem;display:flex;justify-content:center;gap:1rem;flex-wrap:wrap">
+      <button class="btn btn-green" onclick="window.print()">🖨️ Print Certificate</button>
+      <button class="btn btn-outline" onclick="showDashboard()">← Back to Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ADMIN TRACKER ═══════════ -->
+<div class="tracker-screen" id="trackerScreen">
+  <div class="tracker-header">
+    <div>
+      <h2>Admin Dashboard</h2>
+      <p style="color:var(--text-light);font-size:.9rem">Manage course content and monitor learner progress</p>
+    </div>
+    <div class="tracker-header-actions">
+      <button class="btn btn-sm btn-outline" onclick="logoutAdmin()">← Sign Out</button>
+    </div>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="tab active" onclick="switchAdminTab('trackerTab')">📊 Tracker</button>
+    <button class="tab" onclick="switchAdminTab('modulesTab')">📚 Manage Modules</button>
+    <button class="tab" onclick="switchAdminTab('questionsTab')">❓ Manage Questions</button>
+  </div>
+
+  <div id="trackerTab" class="admin-tab-panel active">
+    <div class="tracker-header-actions" style="margin-bottom:1rem">
+      <button class="btn btn-sm btn-outline" onclick="exportTrackerCSV()">📥 Export CSV</button>
+      <button class="btn btn-sm btn-outline" onclick="refreshTrackerData()">🔄 Refresh</button>
+    </div>
+    <div class="tracker-stats" id="trackerStats"></div>
+    <div class="tracker-table-wrap">
+      <div class="tracker-search">
+        <input type="text" id="trackerSearchInput" placeholder="Search by name, staff ID, or role..." oninput="filterTracker()">
+      </div>
+      <table class="tracker-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Staff ID</th>
+            <th>Role</th>
+            <th>Progress</th>
+            <th>M1</th><th>M2</th><th>M3</th><th>M4</th><th>M5</th><th>M6</th><th>M7</th><th>M8</th>
+            <th>Last Active</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="trackerBody"></tbody>
+      </table>
+      <div class="tracker-empty" id="trackerEmpty" style="display:none">No learners found matching your search.</div>
+    </div>
+  </div>
+
+  <div id="modulesTab" class="admin-tab-panel">
+    <div style="margin-bottom:1.5rem">
+      <button class="btn" onclick="console.log('[Admin] Add Module button clicked'); showAddModuleForm()">+ Add New Module</button>
+    </div>
+    <div id="moduleListContainer"></div>
+    <div id="moduleFormContainer" style="display:block !important;visibility:visible !important;opacity:1 !important;position:relative !important"></div>
+  </div>
+
+  <div id="questionsTab" class="admin-tab-panel">
+    <h3 id="questionsModuleTitle" style="margin-bottom:1rem">Select a module to manage questions</h3>
+    <div id="questionListContainer">
+      <p style="color:var(--text-light)">Go to "Manage Modules" and click the ❓ icon next to a module to manage its questions.</p>
+    </div>
+    <div id="questionFormContainer"></div>
+    <div id="bulkUploadContainer"></div>
+  </div>
+</div>
+
+<div id="userDetailModal" class="user-detail-modal" style="display:none" onclick="if(event.target===this)closeUserDetail()">
+  <div class="user-detail-card" id="userDetailCard"></div>
+</div>
+
+<!-- ═══════════ CORE JAVASCRIPT ═══════════ -->
+<script>
+// Initialize global state
+window.PSTAR = {
+  MODULES: [],
+  ADMIN_KEY: null
+};
+
+window.PSTAR_STATE = {
+  currentUser: null,
+  started: false,
+  currentModule: null,
+  completed: {},
+  quizAnswers: {}
+};
+
+// API helper with detailed logging
+async function api(method, url, body) {
+  console.log(`[API] ${method} ${url}`, body || '');
+  const options = {
+    method,
+    headers: { 'Content-Type': 'application/json' }
+  };
+  if (body) options.body = JSON.stringify(body);
+  
+  const res = await fetch(url, options);
+  
+  if (!res.ok) {
+    console.error(`[API] Error: ${res.status} ${res.statusText}`);
+    throw new Error(`API request failed: ${res.status}`);
+  }
+  
+  const data = await res.json();
+  console.log(`[API] Response:`, data);
+  return data;
+}
+
+// Save module progress with detailed logging
+async function saveModuleProgress(modId, score, total, passed) {
+  if (!PSTAR_STATE.currentUser) {
+    console.error('[Progress] No current user - cannot save progress');
+    return;
+  }
+  
+  console.log(`[Progress] Saving: Module=${modId}, Score=${score}/${total}, Passed=${passed}, User=${PSTAR_STATE.currentUser.staffId}`);
+  
+  try {
+    const result = await api('POST', '/api/progress', {
+      staffId: PSTAR_STATE.currentUser.staffId,
+      moduleId: modId,
+      score,
+      total,
+      passed
+    });
+    console.log('[Progress] ✓ Saved successfully:', result);
+    return result;
+  } catch (e) {
+    console.error('[Progress] ✗ Failed to save:', e);
+    alert('Error saving progress: ' + e.message);
+    throw e;
+  }
+}
+
+// Save quiz answers with logging
+async function saveQuizAnswersToServer(modId, answers) {
+  if (!PSTAR_STATE.currentUser) return;
+  
+  console.log(`[Quiz] Saving answers for ${modId}:`, answers);
+  
+  try {
+    await api('POST', '/api/quiz-answers', {
+      staffId: PSTAR_STATE.currentUser.staffId,
+      moduleId: modId,
+      answers
+    });
+    console.log('[Quiz] ✓ Answers saved');
+  } catch (e) {
+    console.error('[Quiz] Failed to save answers:', e);
+  }
+}
+
+// UI helpers
+function switchAdminTab(tabId) {
+  document.querySelectorAll('.admin-tabs .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+
+  // Load data when switching to modules tab
+  if (tabId === 'modulesTab') {
+    loadModulesList();
+  }
+}
+
+async function initAdminModules() {
+  console.log('[Admin] Initializing modules management');
+  await loadModulesList();
+
+  // Ensure button click handler is attached
+  const addBtn = document.querySelector('#modulesTab .btn');
+  if (addBtn && !addBtn.dataset.handlerAttached) {
+    addBtn.addEventListener('click', () => {
+      console.log('[Admin] Add Module button clicked (event listener)');
+      showAddModuleForm();
+    });
+    addBtn.dataset.handlerAttached = 'true';
+    console.log('[Admin] Add module button event listener attached');
+  }
+}
+
+function toggleAcc(header) {
+  const item = header.parentElement;
+  const wasActive = item.classList.contains('active');
+  document.querySelectorAll('.acc-item').forEach(i => i.classList.remove('active'));
+  if (!wasActive) item.classList.add('active');
+}
+
+function switchTab(tabEl, panelId) {
+  const parent = tabEl.parentElement;
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  const container = parent.nextElementSibling;
+  let panel = container;
+  while (panel && !panel.classList.contains('tab-panel')) {
+    panel = panel.nextElementSibling;
+  }
+  if (panel) {
+    const allPanels = panel.parentElement.querySelectorAll('.tab-panel');
+    allPanels.forEach(p => p.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+  }
+}
+</script>
+
+<script src="/js/config.js"></script>
+<script src="/js/state.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/admin-modules.js"></script>
+
+<script>
+// ═══════════ LOGIN ═══════════
+function initLogin() {
+  const logoSrcEl = document.getElementById('starLogoSrc');
+  const loginLogoEl = document.getElementById('loginLogo');
+  if (logoSrcEl && loginLogoEl) {
+    loginLogoEl.src = logoSrcEl.value;
+  }
+
+  const lastId = sessionStorage.getItem('pstar_lastId');
+  if (lastId) {
+    const staffIdEl = document.getElementById('loginStaffId');
+    if (staffIdEl) {
+      staffIdEl.value = lastId;
+      checkReturningUser(lastId);
+    }
+  }
+}
+
+async function checkReturningUser(staffId) {
+  try {
+    const data = await api('GET', '/api/user/' + encodeURIComponent(staffId));
+    if (data.exists) {
+      document.getElementById('loginName').value = data.name;
+      if (data.role) document.getElementById('loginRole').value = data.role;
+      const retDiv = document.getElementById('returningUser');
+      retDiv.style.display = 'block';
+      retDiv.innerHTML = '<div class="login-returning"><strong>Welcome back, ' + data.name + '!</strong><span>' + data.completedCount + ' of 8 modules completed. Sign in to continue where you left off.</span></div>';
+    }
+  } catch (e) {
+    console.error('[Login] Error checking returning user:', e);
+  }
+}
+
+// handleLogin is now in auth.js - removed old duplicate function
+
+// ═══════════ ADMIN LOGIN - FIXED VERSION ═══════════
+function showAdminLogin() {
+  document.getElementById('adminLoginOverlay').style.display = 'flex';
+  document.getElementById('adminPass').focus();
+}
+
+function hideAdminLogin() {
+  document.getElementById('adminLoginOverlay').style.display = 'none';
+  document.getElementById('adminPass').value = '';
+  document.getElementById('adminError').style.display = 'none';
+}
+
+async function handleAdminLogin() {
+  const pass = document.getElementById('adminPass').value;
+  const errEl = document.getElementById('adminError');
+  
+  console.log('[Admin] Login attempt');
+  
+  if (!pass || pass.trim() === '') {
+    errEl.textContent = 'Please enter the admin passphrase';
+    errEl.style.display = 'block';
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passphrase: pass })
+    });
+    
+    console.log('[Admin] Response status:', res.status);
+    
+    if (res.ok) {
+      PSTAR.ADMIN_KEY = pass;
+      sessionStorage.setItem('pstar_admin_key', pass);
+      console.log('[Admin] ✓ Login successful, key saved to session');
+
+      document.body.classList.add('admin-mode');
+      hideAdminLogin();
+      
+      const trackerScreen = document.getElementById('trackerScreen');
+      
+      if (!trackerScreen) {
+        console.error('[Admin] ✗ CRITICAL: trackerScreen element not found!');
+        alert('Error: Admin dashboard element not found. Please refresh the page.');
+        return;
+      }
+      
+      trackerScreen.style.cssText = `
+        display: block !important;
+        position: relative !important;
+        left: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 1 !important;
+        min-height: 100vh !important;
+        background: #f8f9fb !important;
+        padding: 2rem !important;
+      `;
+      
+      trackerScreen.classList.add('active');
+      window.scrollTo(0, 0);
+      
+      console.log('[Admin] ✓✓✓ Dashboard should now be visible ✓✓✓');
+      
+      if (typeof refreshTrackerData === 'function') {
+        await refreshTrackerData();
+      }
+      
+      if (typeof initAdminModules === 'function') {
+        await initAdminModules();
+      }
+      
+    } else {
+      errEl.textContent = 'Incorrect passphrase. Please try again.';
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    console.error('[Admin] Error:', e);
+    errEl.textContent = 'Connection error: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+// Refresh tracker data
+let trackerCache = [];
+
+async function refreshTrackerData() {
+  console.log('[Admin] Refreshing tracker...');
+  
+  if (!PSTAR.ADMIN_KEY) {
+    console.error('[Admin] No admin key set');
+    return;
+  }
+  
+  try {
+    const url = `/api/admin/tracker?key=${encodeURIComponent(PSTAR.ADMIN_KEY)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    trackerCache = data.users || [];
+    const totalModules = data.totalModules || 8;
+    
+    const totalUsers = trackerCache.length;
+    const completedUsers = trackerCache.filter(u => Object.keys(u.completed || {}).length === totalModules).length;
+    const inProgressUsers = trackerCache.filter(u => { 
+      const c = Object.keys(u.completed || {}).length; 
+      return c > 0 && c < totalModules; 
+    }).length;
+    const notStarted = totalUsers - completedUsers - inProgressUsers;
+    const avgProgress = totalUsers > 0 ? Math.round(trackerCache.reduce((s, u) => s + Object.keys(u.completed || {}).length, 0) / totalUsers / totalModules * 100) : 0;
+
+    const statsEl = document.getElementById('trackerStats');
+    if (statsEl) {
+      statsEl.innerHTML = `
+        <div class="tracker-stat-card">
+          <div class="tsc-val">${totalUsers}</div>
+          <div class="tsc-label">Total Enrolled</div>
+        </div>
+        <div class="tracker-stat-card">
+          <div class="tsc-val" style="color:var(--green)">${completedUsers}</div>
+          <div class="tsc-label">Fully Completed</div>
+        </div>
+        <div class="tracker-stat-card">
+          <div class="tsc-val" style="color:var(--amber)">${inProgressUsers}</div>
+          <div class="tsc-label">In Progress</div>
+        </div>
+        <div class="tracker-stat-card">
+          <div class="tsc-val" style="color:var(--text-muted)">${notStarted}</div>
+          <div class="tsc-label">Not Started</div>
+        </div>
+        <div class="tracker-stat-card">
+          <div class="tsc-val">${avgProgress}%</div>
+          <div class="tsc-label">Avg. Progress</div>
+        </div>
+      `;
+    }
+    
+    renderTrackerTable(trackerCache);
+    console.log('[Admin] ✓ Tracker refreshed');
+    
+  } catch (e) {
+    console.error('[Admin] Tracker refresh error:', e);
+    throw e;
+  }
+}
+
+function renderTrackerTable(users) {
+  const body = document.getElementById('trackerBody');
+  const empty = document.getElementById('trackerEmpty');
+
+  if (!body) return;
+
+  if (users.length === 0) {
+    body.innerHTML = '';
+    if (empty) {
+      empty.style.display = 'block';
+      empty.textContent = 'No learners have enrolled yet.';
+    }
+    return;
+  }
+  
+  if (empty) empty.style.display = 'none';
+
+  body.innerHTML = users.map(u => {
+    const comp = u.completed || {};
+    const completedCount = Object.keys(comp).length;
+    const pct = Math.round(completedCount / 8 * 100);
+    const lastActive = u.lastActive ? new Date(u.lastActive).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+    const moduleDots = (PSTAR.MODULES || []).slice(0, 8).map(m => {
+      const done = comp[m.id];
+      return `<span class="mod-dot ${done ? 'done' : 'pending'}" title="${m.title}${done ? ' ✓' : ''}">${done ? '✓' : ''}</span>`;
+    }).join('');
+
+    return `<tr onclick="showUserDetail('${u.staffId.replace(/'/g, "\\'")}')">
+      <td><strong>${u.name}</strong></td>
+      <td style="font-family:JetBrains Mono,monospace;font-size:.8rem">${u.staffId}</td>
+      <td>${u.role || '—'}</td>
+      <td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress-bar-sm"><div class="fill" style="width:${pct}%"></div></div><span style="font-family:JetBrains Mono,monospace;font-size:.8rem">${pct}%</span></div></td>
+      <td colspan="8" style="text-align:center">${moduleDots}</td>
+      <td style="font-size:.82rem;color:var(--text-light)">${lastActive}</td>
+      <td style="color:var(--text-muted)">→</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTracker() {
+  const q = document.getElementById('trackerSearchInput').value.toLowerCase().trim();
+  const filtered = trackerCache.filter(u => {
+    if (!q) return true;
+    return u.name.toLowerCase().includes(q) ||
+           u.staffId.toLowerCase().includes(q) ||
+           (u.role || '').toLowerCase().includes(q);
+  });
+  renderTrackerTable(filtered);
+  document.getElementById('trackerEmpty').style.display = filtered.length === 0 ? 'block' : 'none';
+  if (filtered.length === 0) document.getElementById('trackerEmpty').textContent = 'No learners found matching your search.';
+}
+
+function showUserDetail(staffId) {
+  const data = trackerCache.find(u => u.staffId === staffId);
+  if (!data) return;
+  const comp = data.completed || {};
+  const completedCount = Object.keys(comp).length;
+  const pct = Math.round(completedCount / 8 * 100);
+
+  const card = document.getElementById('userDetailCard');
+  card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem"><div>' +
+    '<h3 style="margin-bottom:.3rem">' + data.name + '</h3>' +
+    '<p style="font-size:.9rem;color:var(--text-light)">' + data.staffId + ' · ' + (data.role || '—') + '</p>' +
+    '<p style="font-size:.82rem;color:var(--text-muted);margin-top:.3rem">Enrolled: ' + (data.firstLogin ? new Date(data.firstLogin).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—') + '</p>' +
+    '</div><div style="text-align:center"><div style="font-family:JetBrains Mono,monospace;font-size:2rem;font-weight:700;color:var(--green-dark)">' + pct + '%</div><div style="font-size:.78rem;color:var(--text-muted)">' + completedCount + ' of 8</div></div></div>' +
+    '<div style="border-top:1px solid var(--border);padding-top:1rem">' +
+    PSTAR.MODULES.map(m => {
+      const done = comp[m.id];
+      const dateStr = done?.completedAt ? new Date(done.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+      const scoreStr = done ? done.score + '/' + done.total + ' (' + Math.round(done.score/done.total*100) + '%)' : '';
+      return '<div class="udm-row"><div class="udm-module">' + m.num + '. ' + m.title + '</div>' +
+        '<div style="display:flex;align-items:center;gap:.6rem">' +
+        (scoreStr ? '<span style="font-size:.8rem;color:var(--text-light);font-family:JetBrains Mono,monospace">' + scoreStr + '</span>' : '') +
+        (dateStr ? '<span style="font-size:.75rem;color:var(--text-muted)">' + dateStr + '</span>' : '') +
+        '<span class="udm-status ' + (done ? 'complete' : 'incomplete') + '">' + (done ? 'Complete' : 'Incomplete') + '</span></div></div>';
+    }).join('') +
+    '</div>' +
+    '<div style="margin-top:1.5rem;text-align:right"><button class="btn btn-sm btn-outline" onclick="closeUserDetail()">Close</button></div>';
+
+  document.getElementById('userDetailModal').style.display = 'flex';
+}
+
+function closeUserDetail() {
+  document.getElementById('userDetailModal').style.display = 'none';
+}
+
+function exportTrackerCSV() {
+  window.open('/api/admin/export?key=' + encodeURIComponent(PSTAR.ADMIN_KEY), '_blank');
+}
+
+function logoutAdmin() {
+  PSTAR.ADMIN_KEY = null;
+  sessionStorage.removeItem('pstar_admin_key');
+  console.log('[Admin] Logged out, key cleared');
+  document.body.classList.remove('admin-mode');
+  const trackerScreen = document.getElementById('trackerScreen');
+  if (trackerScreen) {
+    trackerScreen.classList.remove('active');
+    trackerScreen.style.display = 'none';
+  }
+  document.getElementById('loginScreen').style.display = 'flex';
+  initLogin();
+}
+
+// ═══════════ MODULE MANAGEMENT ═══════════
+
+function checkAdminAuth() {
+  if (!PSTAR.ADMIN_KEY) {
+    alert('Admin session expired. Please logout and login to the admin panel again.');
+    console.error('[Admin] No admin key found');
+    return false;
+  }
+  return true;
+}
+
+async function loadModulesList() {
+  if (!checkAdminAuth()) return;
+  try {
+    // First check if server is reachable
+    const serverReachable = await checkServerConnection();
+    if (!serverReachable) return;
+
+    const url = `/api/admin/modules?key=${PSTAR.ADMIN_KEY}&includeInactive=true`;
+    console.log('[Admin] Loading modules list:', url.replace(PSTAR.ADMIN_KEY, '[HIDDEN]'));
+
+    let res;
+    try {
+      res = await fetch(url);
+      console.log('[Admin] Modules list response status:', res.status);
+    } catch (fetchErr) {
+      console.error('[Admin] Modules list fetch failed:', fetchErr);
+      throw new Error(`Network error: ${fetchErr.message}. Server connection lost.`);
+    }
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Failed to load modules');
+
+    const container = document.getElementById('moduleListContainer');
+
+    if (!data.modules || data.modules.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-light);padding:2rem;text-align:center">No modules yet. Click "Add New Module" to create one.</p>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table class="tracker-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Module ID</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Questions</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.modules.map(m => `
+            <tr style="${!m.is_active ? 'opacity:0.5' : ''}">
+              <td>${m.num}</td>
+              <td style="font-family:monospace;font-size:0.9rem">${m.module_id}</td>
+              <td><strong>${m.title}</strong></td>
+              <td style="max-width:300px">${m.description}</td>
+              <td>
+                <span style="display:inline-block;padding:0.25rem 0.75rem;border-radius:12px;font-size:0.75rem;font-weight:600;background:${m.is_active ? 'var(--green-light)' : '#f0f0f0'};color:${m.is_active ? 'var(--green-dark)' : 'var(--text-muted)'}">
+                  ${m.is_active ? '✓ Active' : '✕ Inactive'}
+                </span>
+              </td>
+              <td>${m.question_count || 0} questions</td>
+              <td>
+                <div style="display:flex;gap:0.5rem">
+                  <button class="btn btn-sm btn-outline" onclick="showEditModuleForm('${m.module_id}')" title="Edit">✏️</button>
+                  <button class="btn btn-sm btn-outline" onclick="toggleModuleActive('${m.module_id}')" title="Toggle Active/Inactive">${m.is_active ? '🔴' : '🟢'}</button>
+                  <button class="btn btn-sm btn-outline" onclick="switchAdminTab('questionsTab'); loadModuleQuestions('${m.module_id}')" title="Manage Questions">❓</button>
+                  <button class="btn btn-sm btn-outline" onclick="confirmDeleteModule('${m.module_id}')" title="Delete" style="color:var(--red)">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    console.error('[Admin] Load modules error:', err);
+    alert('Failed to load modules: ' + err.message);
+  }
+}
+
+function showAddModuleForm() {
+  console.log('[Admin] showAddModuleForm called');
+  const container = document.getElementById('moduleFormContainer');
+
+  if (!container) {
+    console.error('[Admin] moduleFormContainer not found!');
+    alert('Error: Form container not found. Please refresh the page.');
+    return;
+  }
+
+  console.log('[Admin] Rendering add module form');
+  container.innerHTML = `
+    <div style="background:var(--bg-light);padding:1.5rem;border-radius:8px;margin-top:1.5rem">
+      <h3>Add New Module</h3>
+      <form id="moduleForm" onsubmit="event.preventDefault(); saveModule()">
+        <div style="display:grid;gap:1rem">
+          <div>
+            <label style="display:block;margin-bottom:0.5rem;font-weight:500">Module ID *</label>
+            <input type="text" id="moduleId" required placeholder="e.g., m9" pattern="[a-z0-9_-]+" title="Lowercase letters, numbers, hyphens, underscores only" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:6px">
+            <small style="color:var(--text-light)">Unique identifier (lowercase, no spaces)</small>
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:0.5rem;font-weight:500">Module Number *</label>
+            <input type="number" id="moduleNum" required placeholder="9" min="1" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:6px">
+            <small style="color:var(--text-light)">Display order number</small>
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:0.5rem;font-weight:500">Title *</label>
+            <input type="text" id="moduleTitle" required placeholder="Module Title" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:6px">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:0.5rem;font-weight:500">Description *</label>
+            <textarea id="moduleDesc" required placeholder="Brief description" rows="2" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:6px"></textarea>
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:0.5rem;font-weight:500">Content (HTML) *</label>
+            <textarea id="moduleContent" required placeholder="<h2>Content here</h2>..." rows="8" style="width:100%;padding:0.75rem;border:1px solid var(--border);border-radius:6px;font-family:monospace;font-size:0.9rem"></textarea>
+            <small style="color:var(--text-light)">Full HTML content for the module</small>
+          </div>
+          <div style="display:flex;gap:1rem">
+            <button type="submit" class="btn">Save Module</button>
+            <button type="button" class="btn btn-outline" onclick="closeModuleForm()">Cancel</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  `;
+
+  console.log('[Admin] Form HTML inserted. Container innerHTML length:', container.innerHTML.length);
+  console.log('[Admin] Container visible?', container.offsetHeight > 0, 'Height:', container.offsetHeight);
+
+  container.scrollIntoView({ behavior: 'smooth' });
+
+  // Force display
+  const formDiv = container.querySelector('div');
+  if (formDiv) {
+    formDiv.style.cssText = 'display:block !important; visibility:visible !important; opacity:1 !important; background:#f8f9fb; padding:1.5rem; border-radius:8px; margin-top:1.5rem';
+    console.log('[Admin] Form div forced visible');
+  }
+}
+
+// ─── Server Connectivity Check ───
+async function checkServerConnection() {
+  try {
+    console.log('[Admin] Checking server connection...');
+    const res = await fetch('/api/modules', { method: 'GET' });
+    console.log('[Admin] Server is reachable. Status:', res.status);
+    return true;
+  } catch (err) {
+    console.error('[Admin] Server not reachable:', err);
+    alert('Cannot connect to server. Please ensure the server is running on port 3000.');
+    return false;
+  }
+}
+
+function closeModuleForm() {
+  document.getElementById('moduleFormContainer').innerHTML = '';
+}
+
+async function toggleModuleActive(moduleId) {
+  if (!checkAdminAuth()) return;
+
+  try {
+    const url = `/api/admin/modules/${encodeURIComponent(moduleId)}/toggle?key=${PSTAR.ADMIN_KEY}`;
+    console.log('[Admin] Toggle module:', url.replace(PSTAR.ADMIN_KEY, '[HIDDEN]'));
+
+    let res;
+    try {
+      res = await fetch(url, { method: 'POST' });
+      console.log('[Admin] Toggle response status:', res.status);
+    } catch (fetchErr) {
+      console.error('[Admin] Toggle fetch failed:', fetchErr);
+      throw new Error(`Network error: ${fetchErr.message}. Is the server running?`);
+    }
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Failed to toggle module');
+
+    loadModulesList();
+    await loadModulesFromAPI(); // Reload for main app
+  } catch (err) {
+    console.error('[Admin] Toggle module error:', err);
+    alert('Failed to toggle module: ' + err.message);
+  }
+}
+
+async function confirmDeleteModule(moduleId) {
+  if (!checkAdminAuth()) return;
+
+  if (!confirm(`Are you sure you want to delete this module?\n\nThis will also delete all associated questions and student progress for this module. This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const url = `/api/admin/modules/${encodeURIComponent(moduleId)}?key=${PSTAR.ADMIN_KEY}`;
+    console.log('[Admin] Deleting module:', url.replace(PSTAR.ADMIN_KEY, '[HIDDEN]'));
+
+    let res;
+    try {
+      res = await fetch(url, { method: 'DELETE' });
+      console.log('[Admin] Delete response status:', res.status);
+    } catch (fetchErr) {
+      console.error('[Admin] Delete fetch failed:', fetchErr);
+      throw new Error(`Network error: ${fetchErr.message}. Is the server running?`);
+    }
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Failed to delete module');
+
+    alert('Module deleted successfully!');
+    loadModulesList();
+    await loadModulesFromAPI(); // Reload for main app
+  } catch (err) {
+    console.error('[Admin] Delete module error:', err);
+    alert('Failed to delete module: ' + err.message);
+  }
+}
+
+// ═══════════ COURSE FUNCTIONS ═══════════
+function startCourse() {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('topbar').classList.add('active');
+  PSTAR_STATE.started = true;
+  showDashboard();
+}
+
+function showDashboard() {
+  console.log('[Dashboard] Showing dashboard. Completed modules:', Object.keys(PSTAR_STATE.completed));
+  hideAllScreens();
+  document.getElementById('dashboard').classList.add('active');
+  updateUserBadge();
+  renderModuleNav();
+  updateProgress();
+}
+
+function hideAllScreens() {
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('moduleContainer').classList.remove('active');
+  document.getElementById('certificate').classList.remove('active');
+  document.getElementById('trackerScreen').classList.remove('active');
+}
+
+function updateUserBadge() {
+  let badge = document.getElementById('userBadge');
+  if (!badge && PSTAR_STATE.currentUser) {
+    const topbar = document.getElementById('topbar');
+    badge = document.createElement('div');
+    badge.id = 'userBadge';
+    badge.style.cssText = 'font-size:.8rem;color:var(--text-light);margin-left:auto;white-space:nowrap;display:flex;align-items:center;gap:.5rem;';
+    badge.innerHTML = '<span>👤 ' + PSTAR_STATE.currentUser.name + '</span><a onclick="logoutUser()" style="font-size:.75rem;cursor:pointer;color:var(--text-muted);text-decoration:underline">Sign out</a>';
+    topbar.appendChild(badge);
+  }
+}
+
+function logoutUser() {
+  PSTAR_STATE.currentUser = null;
+  PSTAR_STATE.started = false;
+  PSTAR_STATE.currentModule = null;
+  PSTAR_STATE.completed = {};
+  PSTAR_STATE.quizAnswers = {};
+  hideAllScreens();
+  document.getElementById('topbar').classList.remove('active');
+  const badge = document.getElementById('userBadge');
+  if (badge) badge.remove();
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('splash').style.display = 'none';
+  initLogin();
+}
+
+function renderModuleNav() {
+  console.log('[ModuleNav] Rendering. Modules:', PSTAR.MODULES.length, 'Completed:', PSTAR_STATE.completed);
+  
+  const nav = document.getElementById('moduleNav');
+  nav.innerHTML = PSTAR.MODULES.map((m, i) => {
+    const done = PSTAR_STATE.completed[m.id];
+    const cls = done ? 'completed' : (PSTAR_STATE.currentModule === m.id ? 'current' : '');
+    
+    console.log(`[ModuleNav] ${m.id}: ${done ? 'COMPLETED' : 'not completed'}`);
+    
+    return '<div class="module-card ' + cls + '" onclick="openModule(\'' + m.id + '\')">' +
+      '<div class="mc-num">' + m.num + '</div>' +
+      '<div class="mc-title">' + m.title + '</div>' +
+      '<div class="mc-desc">' + m.desc + '</div>' +
+      '<div class="mc-status ' + (done ? 'done' : '') + '">' + (done ? '✓' : (i + 1)) + '</div>' +
+    '</div>';
+  }).join('');
+
+  // Check if all modules are completed (must have modules loaded AND all completed)
+  const allDone = PSTAR.MODULES.length > 0 && PSTAR.MODULES.every(m => PSTAR_STATE.completed[m.id]);
+  console.log('[ModuleNav] All modules done?', allDone, '(Total modules:', PSTAR.MODULES.length + ')');
+
+  if (allDone) {
+    nav.innerHTML += '<div class="module-card" style="border:2px solid var(--green);background:linear-gradient(135deg,var(--green-light),#d4edda);cursor:pointer;grid-column:1/-1;text-align:center" onclick="showCertificate()">' +
+      '<div class="mc-title" style="font-size:1.2rem;color:var(--green-dark)">🎓 View Your Certificate</div>' +
+      '<div class="mc-desc">All modules completed! Claim your certificate of completion.</div>' +
+    '</div>';
+  }
+}
+
+function openModule(id) {
+  const mod = PSTAR.MODULES.find(m => m.id === id);
+  if (!mod) return;
+  
+  console.log('[Module] Opening:', id, mod.title);
+  
+  PSTAR_STATE.currentModule = id;
+  hideAllScreens();
+  const container = document.getElementById('moduleContainer');
+  container.classList.add('active');
+
+  container.innerHTML = `
+    <div class="module-view active">
+      <div class="module-header">
+        <div class="mh-num">${mod.num} of ${PSTAR.MODULES.length}</div>
+        <h2>${mod.title}</h2>
+        <p>${mod.desc}</p>
+      </div>
+      ${mod.content}
+      <div class="quiz-section" id="quiz-${id}">
+        <h3>📝 Knowledge Check</h3>
+        <p class="quiz-subtitle">Answer all questions to complete this module. You need 80% to pass.</p>
+        ${mod.quiz.map((q, qi) => `
+          <div class="quiz-q" id="q-${id}-${qi}">
+            <p>${qi + 1}. ${q.q}</p>
+            ${q.opts.map((o, oi) => `
+              <label>
+                <input type="radio" name="q-${id}-${qi}" value="${oi}" onchange="selectAnswer('${id}',${qi},${oi})">
+                ${o}
+              </label>
+            `).join('')}
+            <div class="feedback" id="fb-${id}-${qi}"></div>
+          </div>
+        `).join('')}
+        <div id="result-${id}" class="quiz-result"></div>
+        <button class="btn btn-green" id="submitBtn-${id}" onclick="submitQuiz('${id}')">Submit Answers</button>
+      </div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem">
+        ${getModuleIndex(id) > 0 ? '<button class="btn btn-outline" onclick="openModule(\'' + PSTAR.MODULES[getModuleIndex(id) - 1].id + '\')">← Previous</button>' : ''}
+        <button class="btn btn-outline" onclick="showDashboard()">Dashboard</button>
+        ${getModuleIndex(id) < PSTAR.MODULES.length - 1 ? '<button class="btn btn-green" onclick="openModule(\'' + PSTAR.MODULES[getModuleIndex(id) + 1].id + '\')">Next Module →</button>' : ''}
+      </div>
+    </div>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getModuleIndex(id) {
+  return PSTAR.MODULES.findIndex(m => m.id === id);
+}
+
+function selectAnswer(modId, qIdx, optIdx) {
+  if (!PSTAR_STATE.quizAnswers[modId]) PSTAR_STATE.quizAnswers[modId] = {};
+  PSTAR_STATE.quizAnswers[modId][qIdx] = optIdx;
+  
+  console.log(`[Quiz] Selected: Module=${modId}, Question=${qIdx}, Option=${optIdx}`);
+  
+  clearTimeout(selectAnswer._timer);
+  selectAnswer._timer = setTimeout(() => {
+    saveQuizAnswersToServer(modId, PSTAR_STATE.quizAnswers[modId]);
+  }, 1500);
+}
+
+async function submitQuiz(modId) {
+  console.log('[Quiz] Submitting quiz for:', modId);
+  
+  const mod = PSTAR.MODULES.find(m => m.id === modId);
+  if (!mod) {
+    console.error('[Quiz] Module not found:', modId);
+    return;
+  }
+  
+  console.log('[Quiz] Module found:', mod.title, 'Questions:', mod.quiz.length);
+  
+  let correct = 0;
+  mod.quiz.forEach((q, qi) => {
+    const selected = PSTAR_STATE.quizAnswers[modId]?.[qi];
+    const correctAnswer = q.ans;
+    
+    console.log(`[Quiz] Q${qi+1}: Selected=${selected}, Correct=${correctAnswer}, Match=${selected === correctAnswer}`);
+    
+    const fb = document.getElementById('fb-' + modId + '-' + qi);
+    if (selected === correctAnswer) {
+      correct++;
+      fb.className = 'feedback correct';
+      fb.innerHTML = '✅ Correct! ' + q.explain;
+    } else {
+      fb.className = 'feedback incorrect';
+      fb.innerHTML = '❌ Incorrect. ' + q.explain;
+    }
+    document.querySelectorAll('input[name="q-' + modId + '-' + qi + '"]').forEach(inp => inp.disabled = true);
+  });
+
+  const total = mod.quiz.length;
+  const pct = Math.round((correct / total) * 100);
+  const passed = pct >= 80;
+
+  console.log(`[Quiz] Results: ${correct}/${total} (${pct}%) - ${passed ? 'PASSED' : 'FAILED'}`);
+
+  const result = document.getElementById('result-' + modId);
+  result.style.display = 'block';
+  result.className = 'quiz-result ' + (passed ? 'pass' : 'fail');
+  result.innerHTML = '<div class="quiz-score">' + pct + '%</div>' +
+    '<h4>' + (passed ? '🎉 Module Passed!' : '⚠️ Not Yet Passed') + '</h4>' +
+    '<p>' + (passed ? 'You scored ' + correct + '/' + total + '. This module is now complete.' : 'You scored ' + correct + '/' + total + '. You need 80% to pass. Review the material and try again.') + '</p>' +
+    (!passed ? '<button class="btn btn-outline btn-sm" onclick="retryQuiz(\'' + modId + '\')" style="margin-top:1rem">Retry Quiz</button>' : '');
+
+  if (passed) {
+    console.log('[Quiz] ✓ Module passed! Saving progress...');
+    
+    PSTAR_STATE.completed[modId] = { 
+      score: correct, 
+      total, 
+      passed: true, 
+      completedAt: new Date().toISOString() 
+    };
+    
+    console.log('[Quiz] Updated PSTAR_STATE.completed:', PSTAR_STATE.completed);
+    
+    document.getElementById('submitBtn-' + modId).style.display = 'none';
+    
+    try {
+      await saveModuleProgress(modId, correct, total, true);
+      console.log('[Quiz] ✓✓ Progress saved to database');
+    } catch (e) {
+      console.error('[Quiz] ✗ Failed to save progress:', e);
+    }
+  }
+  
+  updateProgress();
+}
+
+function retryQuiz(modId) {
+  PSTAR_STATE.quizAnswers[modId] = {};
+  saveQuizAnswersToServer(modId, {});
+  openModule(modId);
+  setTimeout(() => {
+    document.getElementById('quiz-' + modId).scrollIntoView({ behavior: 'smooth' });
+  }, 300);
+}
+
+function updateProgress() {
+  const done = Object.keys(PSTAR_STATE.completed).length;
+  const total = PSTAR.MODULES.length;
+
+  // Guard: Don't calculate if modules aren't loaded yet
+  if (!total || total === 0) {
+    console.log('[Progress] Modules not loaded yet, skipping progress update');
+    return;
+  }
+
+  const pct = Math.round((done / total) * 100);
+
+  console.log('[Progress] Update: ', done, '/', total, '=', pct + '%');
+
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+
+  const ring = document.getElementById('ringFg');
+  const ringPct = document.getElementById('ringPct');
+  if (ring && ringPct) {
+    const circumference = 345.58;
+    ring.style.strokeDashoffset = circumference - (circumference * pct / 100);
+    ringPct.textContent = pct + '%';
+  }
+}
+
+async function showCertificate() {
+  // Check if all modules are completed (must have modules loaded AND all completed)
+  const allDone = PSTAR.MODULES.length > 0 && PSTAR.MODULES.every(m => PSTAR_STATE.completed[m.id]);
+  if (!allDone) {
+    console.log('[Certificate] Not all modules completed yet');
+    return;
+  }
+  hideAllScreens();
+  document.getElementById('certificate').classList.add('active');
+  document.getElementById('certDate').textContent = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('certName').textContent = PSTAR_STATE.currentUser ? PSTAR_STATE.currentUser.name : 'Learner';
+  if (PSTAR_STATE.currentUser) {
+    await api('POST', '/api/certificate', { staffId: PSTAR_STATE.currentUser.staffId });
+  }
+}
+
+// ═══════════ LOAD MODULES FROM API ═══════════
+async function loadModulesFromAPI() {
+  try {
+    console.log('[Modules] Loading from API...');
+    const res = await fetch('/api/modules');
+    const data = await res.json();
+
+    if (data.modules && Array.isArray(data.modules)) {
+      PSTAR.MODULES = data.modules.map(m => ({
+        id: m.module_id,
+        num: m.num,
+        title: m.title,
+        desc: m.description,
+        content: m.content_html,
+        quiz: (m.questions || []).map(q => {
+          // Sort options by display_order
+          const sortedOptions = (q.options || []).sort((a, b) => a.display_order - b.display_order);
+          
+          // Find the index of the correct answer AFTER sorting
+          const correctIndex = sortedOptions.findIndex(o => o.is_correct);
+          
+          console.log(`[Modules] Question: "${q.question_text.substring(0, 50)}..." - Correct answer index: ${correctIndex}`);
+          
+          return {
+            q: q.question_text,
+            opts: sortedOptions.map(o => o.option_text),
+            ans: correctIndex,
+            explain: q.explanation
+          };
+        })
+      }));
+
+      console.log(`[Modules] ✓ Loaded ${PSTAR.MODULES.length} modules from API`);
+      console.log('[Modules] Sample quiz structure:', PSTAR.MODULES[0]?.quiz[0]);
+      return true;
+    } else {
+      console.warn('[Modules] No modules returned from API');
+      return false;
+    }
+  } catch (err) {
+    console.error('[Modules] Failed to load from API:', err);
+    return false;
+  }
+}
+
+// ═══════════ INITIALIZE ═══════════
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('[App] ═══════════════════════════════════════');
+  console.log('[App] Project STAR - Initializing...');
+  console.log('[App] ═══════════════════════════════════════');
+
+  // Restore admin key from sessionStorage if exists
+  const savedAdminKey = sessionStorage.getItem('pstar_admin_key');
+  if (savedAdminKey) {
+    PSTAR.ADMIN_KEY = savedAdminKey;
+    console.log('[Admin] Admin key restored from session');
+  }
+
+  // Check for reset token in URL
+  checkForResetToken();
+
+  // Load modules from API FIRST (needed for progress calculation)
+  await loadModulesFromAPI();
+
+  // Check for existing session (restore login on page reload)
+  const hasSession = await checkSession();
+
+  // Bind authentication event listeners
+  document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
+  document.getElementById('regBtn')?.addEventListener('click', handleRegistration);
+  document.getElementById('setPwdBtn')?.addEventListener('click', handleSetPassword);
+  document.getElementById('forgotPwdBtn')?.addEventListener('click', handleForgotPassword);
+  document.getElementById('resetPwdBtn')?.addEventListener('click', handleResetPassword);
+  document.getElementById('adminLoginLink')?.addEventListener('click', showAdminLogin);
+  document.getElementById('beginCourse')?.addEventListener('click', startCourse);
+
+  // Password validation listeners
+  document.getElementById('regPassword')?.addEventListener('input', (e) => {
+    validatePasswordUI(e.target.value, 'req');
+  });
+
+  document.getElementById('setPwdPassword')?.addEventListener('input', (e) => {
+    validatePasswordUI(e.target.value, 'setpwd-req');
+  });
+
+  document.getElementById('resetPwdPassword')?.addEventListener('input', (e) => {
+    validatePasswordUI(e.target.value, 'resetpwd-req');
+  });
+
+  // Enter key handlers
+  document.getElementById('loginPassword')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  // Initialize - show login if no session was restored
+  if (!hasSession) {
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+  document.getElementById('splash').style.display = 'none';
+
+  console.log('[App] ✓ Initialization complete');
+  console.log('[App] Ready for user interaction');
+});
+</script>
+
+<script src="/js/auth.js"></script>
+
+</body>
+</html>

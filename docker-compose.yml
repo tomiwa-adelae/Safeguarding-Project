@@ -1,0 +1,46 @@
+# ═══════════════════════════════════════════════════════════════
+# Project STAR Safeguarding Course — Docker Compose
+# ═══════════════════════════════════════════════════════════════
+# Run:  docker-compose up -d
+# Stop: docker-compose down
+# Logs: docker-compose logs -f app
+# ═══════════════════════════════════════════════════════════════
+
+services:
+  app:
+    build: .
+    container_name: safeguarding-course
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:starpass@db:5432/safeguarding
+      DB_SSL: "false"
+      ADMIN_PASSPHRASE: ${ADMIN_PASSPHRASE:-ProjectSTAR2025}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: safeguarding-db
+    environment:
+      POSTGRES_DB: safeguarding
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: starpass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local

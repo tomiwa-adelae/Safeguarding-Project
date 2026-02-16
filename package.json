@@ -1,0 +1,32 @@
+{
+  "name": "project-star-safeguarding",
+  "version": "2.0.0",
+  "description": "Project STAR Safeguarding Interactive Training Course — PostgreSQL backend with centralised user tracking",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:dev": "nodemon server.js",
+    "dev": "node --watch server.js",
+    "db:migrate": "psql $DATABASE_URL -f schema.sql"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "compression": "^1.7.4",
+    "connect-pg-simple": "^10.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "express-rate-limit": "^8.2.1",
+    "express-session": "^1.19.0",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "node-mailjet": "^6.0.11",
+    "pg": "^8.13.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

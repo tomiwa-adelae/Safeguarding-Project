@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project STAR Safeguarding Course</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<!-- ═══════════ TOP BAR ═══════════ -->
+<div class="topbar" id="topbar">
+  <div class="topbar-progress"><div class="topbar-progress-fill" id="progressFill"></div></div>
+  <div class="topbar-pct" id="progressPct">0%</div>
+  <button class="btn btn-sm btn-outline" onclick="showDashboard()">Dashboard</button>
+</div>
+
+
+<!-- ═══════════ LOGIN SCREEN ═══════════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <img src="" id="loginLogo" alt="Project STAR LGS">
+    <h2>Safeguarding Training</h2>
+    <p class="login-sub">Sign in to track your progress across sessions</p>
+    <div class="login-error" id="loginError"></div>
+    <div id="returningUser" style="display:none"></div>
+    <div class="login-field">
+      <label for="loginName">Full Name</label>
+      <input type="text" id="loginName" placeholder="e.g. Bukola Adeleke" autocomplete="name">
+    </div>
+    <div class="login-field">
+      <label for="loginStaffId">Staff ID / Email</label>
+      <input type="text" id="loginStaffId" placeholder="e.g. adeleke.bu@projectstarlgs.com" autocomplete="email">
+      <div class="field-hint">This is your unique identifier to save and resume progress</div>
+    </div>
+    <div class="login-field">
+      <label for="loginRole">Role</label>
+      <select id="loginRole">
+        <option value="">Select your role...</option>
+        <option value="Teacher / Instructor">Teacher / Instructor</option>
+        <option value="CBT Supervisor">CBT Supervisor</option>
+        <option value="Invigilator">Invigilator</option>
+        <option value="Digital Skills Facilitator">Digital Skills Facilitator</option>
+        <option value="Administrative Staff">Administrative Staff</option>
+        <option value="Volunteer">Volunteer</option>
+        <option value="Board Member">Board Member</option>
+        <option value="DSL / Deputy DSL">DSL / Deputy DSL</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <button class="login-btn" id="loginBtn">Continue to Course →</button>
+    <div class="login-divider">or</div>
+<a class="login-admin-link" id="adminLoginLink">Admin / Tracker Access</a>  </div>
+</div>
+
+<!-- ═══════════ ADMIN LOGIN OVERLAY ═══════════ -->
+<div id="adminLoginOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:1rem">
+  <div class="login-card" style="max-width:380px">
+    <h2 style="font-size:1.3rem;margin-bottom:1rem">Admin Access</h2>
+    <div class="login-error" id="adminError"></div>
+    <div class="login-field">
+      <label for="adminPass">Admin Passphrase</label>
+      <input type="password" id="adminPass" placeholder="Enter admin passphrase" onkeydown="if(event.key==='Enter')handleAdminLogin()">
+    </div>
+    <button class="login-btn" onclick="handleAdminLogin()">Access Tracker →</button>
+    <br><a class="login-admin-link" onclick="hideAdminLogin()" style="margin-top:.8rem">← Back</a>
+  </div>
+</div>
+
+<!-- ═══════════ SPLASH SCREEN ═══════════ -->
+<div class="splash" id="splash">
+  <div class="splash-inner">
+    <div class="splash-badge">Interactive Training Course</div>
+    <h1>Project STAR<br>Safeguarding Course</h1>
+    <p>A comprehensive interactive training programme covering child protection, digital safety, reporting procedures, and your responsibilities under the Project STAR Safeguarding Policy.</p>
+    <div class="splash-stats">
+      <div class="splash-stat"><strong>8</strong><span>Modules</span></div>
+      <div class="splash-stat"><strong>40</strong><span>Questions</span></div>
+      <div class="splash-stat"><strong>~3hrs</strong><span>Duration</span></div>
+    </div>
+    <button class="btn btn-primary" id="beginCourse" style="animation:fadeDown .8s ease .4s both">
+      Begin Course →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════ COURSE DASHBOARD ═══════════ -->
+<div class="course" id="dashboard">
+  <div class="dashboard-header">
+    <h2>Course Dashboard</h2>
+    <p style="color:var(--text-light)">Track your progress through all 8 modules</p>
+    <div class="progress-ring">
+      <svg width="130" height="130">
+        <circle class="bg" cx="65" cy="65" r="55"></circle>
+        <circle class="fg" id="ringFg" cx="65" cy="65" r="55" stroke-dasharray="345.58" stroke-dashoffset="345.58"></circle>
+      </svg>
+      <div class="pct" id="ringPct">0%</div>
+    </div>
+  </div>
+  <div class="module-nav" id="moduleNav"></div>
+</div>
+
+<!-- ═══════════ MODULE VIEW CONTAINER ═══════════ -->
+<div class="course" id="moduleContainer"></div>
+
+<!-- ═══════════ CERTIFICATE ═══════════ -->
+<div class="certificate" id="certificate">
+  <div class="cert-frame">
+    <h2>Certificate of Completion</h2>
+    <p class="cert-sub">Project STAR Safeguarding Training</p>
+    <div class="cert-name" id="certName">Learner</div>
+    <p class="cert-detail">has successfully completed the</p>
+    <p class="cert-detail"><strong>Project STAR Safeguarding Interactive Course</strong></p>
+    <p class="cert-detail">covering child protection, digital safety, reporting procedures,<br>and safeguarding governance across all programme areas.</p>
+    <p class="cert-date" id="certDate"></p>
+    <div style="margin-top:2rem;display:flex;justify-content:center;gap:1rem;flex-wrap:wrap">
+      <button class="btn btn-green" onclick="window.print()">🖨️ Print Certificate</button>
+      <button class="btn btn-outline" onclick="showDashboard()">← Back to Dashboard</button>
+    </div>
+  </div>
+
+
+<!-- ═══════════ ADMIN TRACKER ═══════════ -->
+<div class="tracker-screen" id="trackerScreen">
+  <div class="tracker-header">
+    <div>
+      <h2>📊 Completion Tracker</h2>
+      <p style="color:var(--text-light);font-size:.9rem">Monitor safeguarding training progress across all staff</p>
+    </div>
+    <div class="tracker-header-actions">
+      <button class="btn btn-sm btn-outline" onclick="exportTrackerCSV()">📥 Export CSV</button>
+      <button class="btn btn-sm btn-outline" onclick="refreshTracker()">🔄 Refresh</button>
+      <button class="btn btn-sm btn-outline" onclick="logoutAdmin()">← Sign Out</button>
+    </div>
+  </div>
+  <div class="tracker-stats" id="trackerStats"></div>
+  <div class="tracker-table-wrap">
+    <div class="tracker-search">
+      <input type="text" id="trackerSearchInput" placeholder="Search by name, staff ID, or role..." oninput="filterTracker()">
+    </div>
+    <table class="tracker-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Staff ID</th>
+          <th>Role</th>
+          <th>Progress</th>
+          <th>M1</th><th>M2</th><th>M3</th><th>M4</th><th>M5</th><th>M6</th><th>M7</th><th>M8</th>
+          <th>Last Active</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="trackerBody"></tbody>
+    </table>
+    <div class="tracker-empty" id="trackerEmpty" style="display:none">No learners found matching your search.</div>
+  </div>
+</div>
+
+<!-- ═══════════ USER DETAIL MODAL ═══════════ -->
+<div id="userDetailModal" class="user-detail-modal" style="display:none" onclick="if(event.target===this)closeUserDetail()">
+  <div class="user-detail-card" id="userDetailCard"></div>
+</div>
+
+<!-- JavaScript Files -->
+<script src="/js/config.js"></script>
+<script src="/js/state.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+
+<script>
+const MODULES = [
+  {
+    id: 'm1',
+    num: 'Module 1',
+    title: 'Introduction to Safeguarding',
+    desc: 'Policy statement, purpose, and core principles',
+    content: `
+      <div class="content-section">
+        <h3>What is Safeguarding?</h3>
+        <p>Safeguarding is the action taken to promote the welfare of children and protect them from harm. At Project STAR, safeguarding means:</p>
+        <ul>
+          <li><strong>Protecting</strong> children from abuse and maltreatment</li>
+          <li><strong>Preventing</strong> harm to children's health or development</li>
+          <li><strong>Ensuring</strong> children grow up with safe and effective care</li>
+          <li><strong>Taking action</strong> to enable all children to have the best outcomes</li>
+        </ul>
+        <div class="info-box tip">
+          <div class="ib-icon">💡</div>
+          <p><strong>Key Principle:</strong> Safeguarding is EVERYONE'S responsibility — all staff, volunteers, and partners have a duty to keep children and young people safe.</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Project STAR's Commitment</h3>
+        <p>Project STAR maintains a <strong>zero-tolerance</strong> approach to any form of abuse, exploitation, or harm to children and young people. Our safeguarding framework integrates five pillars:</p>
+        <div class="accordion">
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🏛️ Regulatory Alignment <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Full compliance with the Child Rights Act 2003, Oyo State MoEST guidelines, JAMB examination protocols, and WAEC conduct standards.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🏗️ Governance Structure <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Designated Safeguarding Lead (DSL) with direct Board accountability, supported by Session Safeguarding Leads and clear escalation pathways.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🛡️ Preventative Controls <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Mandatory background checks, comprehensive training, supervised environments, and programme-specific risk mitigation.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">📋 Response Protocols <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Clear incident reporting, investigation procedures, and multi-agency cooperation framework.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🔄 Continuous Improvement <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Annual policy review, quarterly safeguarding audits, and learning from incidents.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Who Does This Policy Apply To?</h3>
+        <p>The safeguarding policy is binding on <strong>all individuals and organisations</strong> associated with Project STAR:</p>
+        <table class="resp-table">
+          <tr><th>Category</th><th>Who</th></tr>
+          <tr><td>Direct Personnel</td><td>All staff (full-time, part-time, temporary, casual), volunteers, trustees, Board members, consultants, contractors</td></tr>
+          <tr><td>Partner Organisations</td><td>Lagelu Grammar School staff, I-World Limited personnel, third-party service providers</td></tr>
+          <tr><td>Visitors</td><td>Funders, inspectors, regulators, guest speakers, facilitators</td></tr>
+        </table>
+        <div class="info-box info">
+          <div class="ib-icon">📌</div>
+          <p>A <strong>child</strong> is defined as any person under the age of 18 years, aligned with the Child Rights Act 2003. Vulnerable adults aged 18+ are also afforded appropriate protections.</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Programme Coverage</h3>
+        <p>This policy covers all Project STAR programmes:</p>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'tab-cbt1')">CBT Services</div>
+          <div class="tab" onclick="switchTab(this,'tab-dsa1')">Digital Skills Academy</div>
+          <div class="tab" onclick="switchTab(this,'tab-acad1')">Academic Support</div>
+        </div>
+        <div class="tab-panel active" id="tab-cbt1">
+          <p>JAMB UTME and Direct Entry examination practice, WAEC exam preparation and mock testing, Post-UTME preparation sessions, supervised CBT practice sessions, and CBT centre operations at Lagelu Grammar School.</p>
+        </div>
+        <div class="tab-panel" id="tab-dsa1">
+          <p>Digital literacy training, coding and programming courses, data analysis and ICT skills development, online and blended learning delivery, and digital mentoring and coaching programmes.</p>
+        </div>
+        <div class="tab-panel" id="tab-acad1">
+          <p>Junior Secondary School (JSS) tutorial support, Senior Secondary School (SSS) academic enrichment, revision and examination preparation classes, and study skills and learning support sessions.</p>
+        </div>
+      </div>
+    `,
+    quiz: [
+      { q: 'What is the primary purpose of safeguarding?', opts: ['Enforcing discipline on students', 'Promoting welfare of children and protecting them from harm', 'Managing examination schedules', 'Processing student admissions'], ans: 1, explain: 'Safeguarding is the action taken to promote the welfare of children and protect them from harm.' },
+      { q: 'Who does the Project STAR Safeguarding Policy apply to?', opts: ['Only full-time staff', 'Only those working directly with children', 'All individuals and organisations associated with Project STAR', 'Only the DSL and Board members'], ans: 2, explain: 'The policy is binding on ALL individuals and organisations associated with Project STAR — staff, volunteers, partners, and visitors.' },
+      { q: 'Under the Child Rights Act 2003, what age defines a child?', opts: ['Under 16', 'Under 18', 'Under 21', 'Under 14'], ans: 1, explain: 'A child is any person under the age of 18 years, aligned with the Child Rights Act 2003.' },
+      { q: 'What approach does Project STAR take to abuse and exploitation?', opts: ['Case-by-case evaluation', 'Zero tolerance', 'Three-strike policy', 'Informal resolution'], ans: 1, explain: 'Project STAR maintains a zero-tolerance approach to any form of abuse, exploitation, or harm.' },
+      { q: 'Which of these is NOT a programme covered by the policy?', opts: ['CBT Services', 'Digital Skills Academy', 'Financial Advisory Services', 'Academic Support'], ans: 2, explain: 'The policy covers CBT Services, Digital Skills Academy, and Academic Support Programmes. Financial Advisory Services is not a Project STAR programme.' }
+    ]
+  },
+  {
+    id: 'm2',
+    num: 'Module 2',
+    title: 'Legal Framework & Governance',
+    desc: 'Laws, regulations, and accountability structure',
+    content: `
+      <div class="content-section">
+        <h3>Nigerian Legal Framework</h3>
+        <p>Project STAR's safeguarding policy is grounded in several key pieces of Nigerian legislation:</p>
+        <div class="accordion">
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">📜 Child Rights Act 2003 <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Establishes the rights of children, prohibits child abuse, neglect, and exploitation, and provides framework for child protection and welfare services.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">📜 Constitution of Nigeria 1999 <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Fundamental rights provisions applicable to children and non-discrimination principles.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">📜 Violence Against Persons (Prohibition) Act 2015 <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Protection against physical, sexual, psychological, and emotional abuse. Includes mandatory reporting requirements for suspected abuse.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">📜 Oyo State Child Rights Law <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">State-level implementation of Child Rights Act with local child protection service structures and responsibilities.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Governance & Accountability Structure</h3>
+        <p>Project STAR has a clear hierarchy of safeguarding accountability:</p>
+        <table class="resp-table">
+          <tr><th>Role</th><th>Reports To</th><th>Decision Authority</th><th>Response Time</th></tr>
+          <tr><td><strong>Board Safeguarding Champion</strong></td><td>Full Board</td><td>Strategic oversight</td><td>Oversight role</td></tr>
+          <tr><td><strong>DSL</strong></td><td>Director & Board</td><td>Full safeguarding authority</td><td>Immediate (serious)</td></tr>
+          <tr><td><strong>Deputy DSL</strong></td><td>DSL</td><td>Acts as DSL when absent</td><td>Immediate (as DSL)</td></tr>
+          <tr><td><strong>SSL (CBT)</strong></td><td>DSL</td><td>Session-level interventions</td><td>Report within 24 hrs</td></tr>
+          <tr><td><strong>SSL (Digital Skills)</strong></td><td>DSL</td><td>Session-level interventions</td><td>Report within 24 hrs</td></tr>
+          <tr><td><strong>Programme Staff</strong></td><td>Line Mgr & DSL</td><td>Report concerns only</td><td>Immediate reporting</td></tr>
+          <tr><td><strong>Volunteers</strong></td><td>Coordinator & DSL</td><td>Report concerns only</td><td>Immediate reporting</td></tr>
+        </table>
+        <div class="info-box warning">
+          <div class="ib-icon">⚠️</div>
+          <p><strong>Current DSL:</strong> Bukola Adeleke (adeleke.bu@projectstarlgs.com)<br><strong>Deputy DSL:</strong> Rachael Ojerinde (ojerinde.ra@projectstarlgs.com)</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Board Responsibilities</h3>
+        <p>The Project STAR Board holds <strong>ultimate accountability</strong> for safeguarding. Key responsibilities include:</p>
+        <ul>
+          <li>Approving and reviewing the Safeguarding Policy <strong>annually</strong></li>
+          <li>Ensuring adequate resources for effective safeguarding</li>
+          <li>Receiving <strong>quarterly</strong> safeguarding reports from the DSL</li>
+          <li>Reviewing serious incidents and lessons learned</li>
+          <li>Appointing a Board Safeguarding Champion for additional scrutiny</li>
+        </ul>
+      </div>
+    `,
+    quiz: [
+      { q: 'Which legislation is the primary legal foundation for child protection in Nigeria?', opts: ['Constitution 1999', 'Child Rights Act 2003', 'Violence Against Persons Act 2015', 'Education Act'], ans: 1, explain: 'The Child Rights Act 2003 is the primary legal framework establishing children\'s rights and child protection standards.' },
+      { q: 'Who holds ULTIMATE accountability for safeguarding at Project STAR?', opts: ['The DSL', 'The Project Director', 'The Board', 'The Ministry of Education'], ans: 2, explain: 'The Project STAR Board holds ultimate accountability for safeguarding.' },
+      { q: 'How often should the Board receive safeguarding reports?', opts: ['Monthly', 'Quarterly', 'Annually', 'Only when incidents occur'], ans: 1, explain: 'The Board receives quarterly safeguarding reports from the DSL.' },
+      { q: 'Who is the current DSL for Project STAR?', opts: ['Rachael Ojerinde', 'Bukola Adeleke', 'The Board Chair', 'The School Principal'], ans: 1, explain: 'Bukola Adeleke is the current Designated Safeguarding Lead.' },
+      { q: 'What is the Session Safeguarding Lead\'s reporting timeframe to the DSL?', opts: ['Immediately', 'Within 24 hours', 'Within 48 hours', 'At the next team meeting'], ans: 1, explain: 'SSLs must report all concerns to the DSL within 24 hours of a session.' }
+    ]
+  },
+  {
+    id: 'm3',
+    num: 'Module 3',
+    title: 'Recognising Abuse & Harm',
+    desc: 'Types of abuse, indicators, and specific concerns',
+    content: `
+      <div class="content-section">
+        <h3>Why Recognition Matters</h3>
+        <p>Early recognition of abuse and harm is <strong>critical</strong> to protecting children. All Project STAR staff and volunteers must be trained and vigilant in recognising signs that a child is suffering or at risk of suffering harm.</p>
+        <div class="info-box danger">
+          <div class="ib-icon">🚨</div>
+          <p>Remember: You do NOT need to be certain that abuse is occurring. If you have concerns or notice something that doesn't seem right, you must report it. It is the DSL's responsibility to investigate — not yours.</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Types of Abuse</h3>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'tab-phys')">Physical</div>
+          <div class="tab" onclick="switchTab(this,'tab-emot')">Emotional</div>
+          <div class="tab" onclick="switchTab(this,'tab-sex')">Sexual</div>
+          <div class="tab" onclick="switchTab(this,'tab-neg')">Neglect</div>
+        </div>
+        <div class="tab-panel active" id="tab-phys">
+          <h4>Physical Abuse</h4>
+          <p><strong>Physical signs:</strong> Unexplained injuries (bruises, burns, fractures), injuries in patterns, injuries at different stages of healing, wearing clothing to hide injuries.</p>
+          <p><strong>Behavioural signs:</strong> Fear of physical contact, aggressive behaviour, withdrawn/anxious mood, running away, reluctance to go home, fear of specific individuals.</p>
+        </div>
+        <div class="tab-panel" id="tab-emot">
+          <h4>Emotional Abuse</h4>
+          <p><strong>Behavioural signs:</strong> Low self-esteem, withdrawn/anxious behaviour, difficulty forming relationships, developmental delay, self-harm, overly compliant or excessively aggressive.</p>
+          <p><strong>Relationship patterns:</strong> Appears frightened of parents/guardians, describes self negatively, seeks constant approval.</p>
+        </div>
+        <div class="tab-panel" id="tab-sex">
+          <h4>Sexual Abuse</h4>
+          <p><strong>Physical signs:</strong> Pain/bleeding in genital areas, sexually transmitted infections, pregnancy, unexplained gifts or money.</p>
+          <p><strong>Behavioural signs:</strong> Sexual knowledge inappropriate for age, regression, fear of specific people/places, self-harm, running away from home.</p>
+          <p><strong>Disclosure indicators:</strong> Hints about secrets, mentions new adult "friend", refers to inappropriate online contact.</p>
+        </div>
+        <div class="tab-panel" id="tab-neg">
+          <h4>Neglect</h4>
+          <p><strong>Physical signs:</strong> Underweight/hungry, poor hygiene, inadequate clothing, untreated medical issues, persistent tiredness.</p>
+          <p><strong>Developmental signs:</strong> Poor school attendance, developmental delay, poor concentration.</p>
+          <p><strong>Behavioural signs:</strong> Withdrawn, compulsive eating/scavenging, takes on adult responsibilities, no supervision at home.</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Specific Safeguarding Concerns at Project STAR</h3>
+        <div class="accordion">
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">💻 Cyberbullying <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Reluctance to use devices, emotional distress after using technology, withdrawal from social interaction, changes in mood, evidence of threatening messages.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">📝 Examination Exploitation <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Sudden acquisition of money, pressure to achieve beyond capability, mentions of being offered "help" for payment, reluctance to discuss exam preparation.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">⚡ Radicalisation & Extremism <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Expressions of extremist views, intolerance of difference, isolation from friends/family, possession of extremist literature, accessing extremist material online.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🔒 Child Sexual Exploitation (CSE) <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Unexplained gifts/money, associating with unknown older individuals, going missing, secretive behaviour, substance misuse.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Barriers to Recognition</h3>
+        <p>Be aware that certain factors can make abuse harder to recognise:</p>
+        <ul>
+          <li><strong>Disability:</strong> Children with disabilities may be particularly vulnerable; communication difficulties may mask signs</li>
+          <li><strong>Cultural Factors:</strong> Cultural practices must be respected but never at the expense of child safety</li>
+          <li><strong>Socioeconomic Factors:</strong> Poverty may explain some indicators but does not excuse neglect</li>
+          <li><strong>Parental Pressure:</strong> High-achieving families may mask emotional abuse through academic pressure</li>
+        </ul>
+      </div>
+    `,
+    quiz: [
+      { q: 'Which of the following is a behavioural indicator of emotional abuse?', opts: ['Unexplained bruises', 'Persistent hunger', 'Low self-esteem and difficulty forming relationships', 'Sexually inappropriate language'], ans: 2, explain: 'Low self-esteem and difficulty forming relationships are key indicators of emotional abuse.' },
+      { q: 'A student suddenly has expensive new items and is secretive about their whereabouts. This could indicate:', opts: ['Good family circumstances', 'Child Sexual Exploitation', 'Normal adolescent behaviour', 'Academic success rewards'], ans: 1, explain: 'Unexplained gifts/money and secretive behaviour are warning signs of CSE.' },
+      { q: 'What is a specific safeguarding concern unique to Project STAR\'s CBT context?', opts: ['Cyberbullying', 'Examination exploitation', 'FGM', 'Forced marriage'], ans: 1, explain: 'Examination exploitation — being pressured to engage in fraud or offered "help" for payment — is a specific concern in the CBT context.' },
+      { q: 'A child hints about secrets they cannot tell and mentions a new older "friend". Which type of abuse might this indicate?', opts: ['Physical abuse', 'Neglect', 'Sexual abuse', 'Emotional abuse'], ans: 2, explain: 'Hints about secrets and references to new adult "friends" are disclosure indicators of sexual abuse.' },
+      { q: 'Why might abuse be harder to recognise in children with disabilities?', opts: ['They are less likely to be abused', 'Communication difficulties may mask signs', 'Disability is not a risk factor', 'Their parents are more attentive'], ans: 1, explain: 'Children with disabilities may be particularly vulnerable, and communication difficulties may mask signs of abuse.' }
+    ]
+  },
+  {
+    id: 'm4',
+    num: 'Module 4',
+    title: 'Reporting Procedures',
+    desc: 'How to report concerns and what happens next',
+    content: `
+      <div class="content-section">
+        <h3>The Reporting Pathway</h3>
+        <div class="flow">
+          <div class="flow-step"><strong>Level 1:</strong> Concern Identified → Report to SSL or DSL immediately</div>
+          <div class="flow-arrow">⬇</div>
+          <div class="flow-step"><strong>Level 2:</strong> DSL assesses risk and determines response (within 24 hours)</div>
+          <div class="flow-arrow">⬇</div>
+          <div class="flow-step"><strong>Level 3:</strong> External referral if required (police, social services, MoEST)</div>
+          <div class="flow-arrow">⬇</div>
+          <div class="flow-step"><strong>Level 4:</strong> Board notification for serious incidents (within 24 hours)</div>
+        </div>
+        <div class="info-box warning">
+          <div class="ib-icon">⏰</div>
+          <p><strong>Timeframes:</strong> Same day for serious concerns. Within 24 hours for lower-level concerns. If DSL unavailable, contact Deputy DSL. If both unavailable, contact the Project STAR Director or Board Safeguarding Champion.</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>If a Child Discloses Abuse</h3>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'tab-do')">✅ DO</div>
+          <div class="tab" onclick="switchTab(this,'tab-dont')">❌ DO NOT</div>
+        </div>
+        <div class="tab-panel active" id="tab-do">
+          <ul>
+            <li><strong>Listen carefully and calmly</strong> — give the child your full attention</li>
+            <li><strong>Take what they say seriously</strong> — believe the child</li>
+            <li><strong>Reassure</strong> — tell them they did the right thing, it's not their fault</li>
+            <li><strong>Be honest</strong> — explain you will need to tell someone who can help</li>
+            <li><strong>Record accurately</strong> — write the child's exact words as soon as possible</li>
+            <li><strong>Report immediately</strong> — contact the DSL the same day</li>
+          </ul>
+        </div>
+        <div class="tab-panel" id="tab-dont">
+          <ul>
+            <li><strong>Do NOT promise confidentiality</strong> — you must share information to help</li>
+            <li><strong>Do NOT ask leading questions</strong> — use open questions like "Can you tell me what happened?"</li>
+            <li><strong>Do NOT investigate</strong> — this is the role of professionals</li>
+            <li><strong>Do NOT contact the alleged abuser</strong></li>
+            <li><strong>Do NOT tell the child what to do</strong> — next steps are for safeguarding professionals</li>
+          </ul>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Mandatory Reporting to Authorities</h3>
+        <p>Certain concerns <strong>must</strong> be referred to police and/or social services:</p>
+        <ul>
+          <li>Sexual abuse or suspected sexual abuse</li>
+          <li>Serious physical abuse or assault</li>
+          <li>Female Genital Mutilation (FGM)</li>
+          <li>Forced marriage</li>
+          <li>Child trafficking or exploitation</li>
+          <li>Serious neglect placing child at immediate risk</li>
+          <li>Honour-based violence</li>
+          <li>Radicalisation or extremism</li>
+        </ul>
+        <div class="info-box danger">
+          <div class="ib-icon">🚨</div>
+          <p>The DSL makes mandatory referrals promptly — <strong>within 24 hours</strong> of becoming aware. The DSL cooperates fully with statutory investigations.</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Scenario: Responding to Disclosure</h3>
+        <div class="scenario">
+          <div class="scenario-label">📖 Scenario</div>
+          <h4>During a CBT practice session, 15-year-old Adebayo tells you quietly: "My uncle does things to me at night. Please don't tell anyone."</h4>
+          <p><strong>The correct response:</strong> Stay calm. Listen carefully. Reassure Adebayo that he's done the right thing by telling you and it's not his fault. Explain honestly that you will need to tell someone who can help — you cannot promise to keep it secret. Record exactly what he said using his own words. Report to the DSL immediately (same day). Do NOT investigate, question him further, or contact the uncle.</p>
+        </div>
+      </div>
+    `,
+    quiz: [
+      { q: 'What is the FIRST thing you should do if a child discloses abuse to you?', opts: ['Contact the police', 'Listen carefully and calmly', 'Tell their parent/guardian', 'Ask detailed questions about what happened'], ans: 1, explain: 'Listen carefully and calmly — give the child your full attention.' },
+      { q: 'A child asks you to keep a secret about abuse. You should:', opts: ['Promise to keep their secret to build trust', 'Explain you cannot keep it secret but will share only with people who need to know', 'Refuse to listen', 'Tell the child to report it themselves'], ans: 1, explain: 'You must be honest — explain you cannot keep it secret but will share only with those who need to know to help.' },
+      { q: 'How quickly should serious safeguarding concerns be reported?', opts: ['Within a week', 'At the next team meeting', 'Same day', 'Within a month'], ans: 2, explain: 'Serious concerns must be reported same day. Lower-level concerns within 24 hours.' },
+      { q: 'Which of these requires MANDATORY referral to police?', opts: ['A child being disruptive in class', 'Suspected examination malpractice', 'Female Genital Mutilation', 'A child arriving late to sessions'], ans: 2, explain: 'FGM is one of several concerns requiring mandatory referral to police/statutory authorities.' },
+      { q: 'After receiving a verbal disclosure, you must follow up with:', opts: ['A social media post', 'A written Safeguarding Incident Report Form within 24 hours', 'An email to all staff', 'A phone call to the child\'s family'], ans: 1, explain: 'All verbal reports must be followed up with a written Safeguarding Incident Report Form within 24 hours.' }
+    ]
+  },
+  {
+    id: 'm5',
+    num: 'Module 5',
+    title: 'CBT Services Safeguarding',
+    desc: 'Specific controls for CBT examination environments',
+    content: `
+      <div class="content-section">
+        <h3>CBT Environment Risks</h3>
+        <p>Project STAR's CBT services carry specific safeguarding risks that require tailored controls:</p>
+        <div class="accordion">
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">😰 Examination Pressure & Stress <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Candidates may experience significant anxiety, pressure from parents, or mental health concerns. Staff should watch for extreme anxiety, expressions of hopelessness, or physical symptoms of stress.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🔐 Malpractice & Exploitation <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Candidates may be pressured to cheat or exploited by individuals offering fraudulent assistance for payment. This is both an exam integrity AND safeguarding issue.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🌐 Digital Access & Misuse <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Unsupervised internet access could expose candidates to harmful content. Internet access must be restricted to approved platforms only.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Supervision Ratios & Structure</h3>
+        <table class="resp-table">
+          <tr><th>Requirement</th><th>Standard</th></tr>
+          <tr><td>SSL per session</td><td>Minimum 1 per CBT session</td></tr>
+          <tr><td>Maximum candidates per SSL</td><td>40</td></tr>
+          <tr><td>Invigilator ratio (>20 candidates)</td><td>1:20</td></tr>
+          <tr><td>DSL availability</td><td>On-site or on call for all sessions</td></tr>
+          <tr><td>Comfort breaks</td><td>Every 90 minutes (min 10 min break)</td></tr>
+        </table>
+      </div>
+      <div class="content-section">
+        <h3>Pre-Session Checklist</h3>
+        <p>Every CBT SSL must verify the following before each session:</p>
+        <ul>
+          <li>✅ CCTV operational and recording</li>
+          <li>✅ Content filtering active on all workstations</li>
+          <li>✅ Session area arranged for visibility and supervision</li>
+          <li>✅ First aid kit accessible; first aider identified</li>
+          <li>✅ Emergency evacuation routes clear</li>
+          <li>✅ Water available for candidates</li>
+          <li>✅ Safeguarding briefing prepared for candidates</li>
+          <li>✅ Incident report forms available</li>
+          <li>✅ DSL contact details confirmed</li>
+          <li>✅ Candidate list and consent forms reviewed</li>
+          <li>✅ Specific safeguarding needs identified and accommodations arranged</li>
+        </ul>
+      </div>
+    `,
+    quiz: [
+      { q: 'What is the maximum number of candidates per Session Safeguarding Lead in CBT?', opts: ['20', '30', '40', '50'], ans: 2, explain: 'Maximum 40 candidates per SSL in CBT sessions.' },
+      { q: 'A candidate is being offered "help" with exam answers for money. This is:', opts: ['Only an examination integrity issue', 'Both an exam integrity AND safeguarding concern', 'A normal commercial activity', 'Not reportable'], ans: 1, explain: 'Examination exploitation is both an integrity issue AND a safeguarding concern — the candidate may be being exploited.' },
+      { q: 'Mobile phones in the CBT area are:', opts: ['Allowed on silent', 'Allowed for emergencies only', 'Not permitted', 'Allowed for checking time'], ans: 2, explain: 'No mobile phones or personal devices are permitted in the CBT area.' },
+      { q: 'How often should comfort breaks be scheduled for CBT sessions?', opts: ['Every 30 minutes', 'Every 60 minutes', 'Minimum 10-minute break per 90 minutes', 'No breaks required'], ans: 2, explain: 'Scheduled breaks for sessions over 1 hour — minimum 10-minute break per 90 minutes.' },
+      { q: 'A candidate shows extreme anxiety, hyperventilating during a session. You should:', opts: ['Ignore it — exams are stressful', 'Ask them to leave the room', 'Provide immediate support, move to quiet area, and contact DSL if serious', 'Tell them to calm down'], ans: 2, explain: 'Provide immediate support, move to quiet area if needed, and contact DSL immediately for serious mental health concerns.' }
+    ]
+  },
+  {
+    id: 'm6',
+    num: 'Module 6',
+    title: 'Digital Safety & Online Protection',
+    desc: 'Safeguarding in digital learning environments',
+    content: `
+      <div class="content-section">
+        <h3>Digital Safeguarding Principles</h3>
+        <p>Project STAR's Digital Skills Academy involves significant technology use. Four principles guide digital safety:</p>
+        <ul>
+          <li><strong>Safety by Design:</strong> Platforms selected with safety and privacy as primary criteria</li>
+          <li><strong>Education & Empowerment:</strong> Participants trained to recognise and manage online risks</li>
+          <li><strong>Supervision & Monitoring:</strong> Appropriate adult oversight of digital activities</li>
+          <li><strong>Incident Response:</strong> Clear procedures for online safeguarding incidents</li>
+        </ul>
+      </div>
+      <div class="content-section">
+        <h3>Platform Security & Controls</h3>
+        <p>All digital platforms used for Project STAR activities must be vetted and approved by the DSL. Configuration requirements include:</p>
+        <ul>
+          <li>Maximum privacy and safety settings enabled</li>
+          <li>Participant-to-participant private messaging <strong>disabled</strong></li>
+          <li>Participant accounts created using <strong>Project STAR email domain only</strong></li>
+          <li>Content filtering blocking: adult content, violence, extremism, gambling, hate speech</li>
+          <li>Social media blocked during programme hours</li>
+          <li>Safe Search enforced on all search engines</li>
+        </ul>
+      </div>
+      <div class="content-section">
+        <h3>Staff Digital Boundaries</h3>
+        <div class="info-box danger">
+          <div class="ib-icon">🚫</div>
+          <p>Staff and volunteers must <strong>NEVER</strong>: communicate with participants via personal devices/accounts, add participants on personal social media, share personal contact details, or use unapproved platforms for programme delivery.</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Responding to Online Incidents</h3>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'tab-cyber')">Cyberbullying</div>
+          <div class="tab" onclick="switchTab(this,'tab-harm')">Harmful Content</div>
+          <div class="tab" onclick="switchTab(this,'tab-groom')">Online Grooming</div>
+        </div>
+        <div class="tab-panel active" id="tab-cyber">
+          <p>Intervene immediately to stop bullying behaviour. Preserve evidence (screenshots). Support the target and investigate. Inform parents/guardians of both parties. Consequences aligned with severity.</p>
+        </div>
+        <div class="tab-panel" id="tab-harm">
+          <p>Remove participant from content immediately. Assess impact and support needs. Investigate how content was accessed. Review filtering effectiveness. Inform parent/guardian.</p>
+        </div>
+        <div class="tab-panel" id="tab-groom">
+          <p>Immediately refer to DSL and statutory authorities. Preserve evidence carefully (do NOT forward images). Support and counselling for participant. Report platform and block account. Support police investigation.</p>
+        </div>
+      </div>
+    `,
+    quiz: [
+      { q: 'Participant accounts for digital platforms should use:', opts: ['Personal email addresses', 'Project STAR domain email addresses', 'Social media logins', 'Any email the participant prefers'], ans: 1, explain: 'Participant accounts must be created using Project STAR email domain — no personal accounts.' },
+      { q: 'Is staff communicating with participants via personal WhatsApp acceptable?', opts: ['Yes, if it\'s about programme activities', 'Yes, with parent permission', 'No, never', 'Yes, for urgent matters'], ans: 2, explain: 'Staff must NEVER communicate with participants via personal devices, accounts, or social media.' },
+      { q: 'You discover a participant has been receiving inappropriate messages from an unknown adult online. You should:', opts: ['Delete the messages', 'Forward the messages to colleagues', 'Preserve evidence and refer immediately to DSL and statutory authorities', 'Reply to the adult from the participant\'s account'], ans: 2, explain: 'Immediately refer to DSL and statutory authorities. Preserve evidence carefully — do NOT forward images.' },
+      { q: 'One-to-one digital mentoring requires:', opts: ['No special arrangements', 'DSL approval and parent consent, with session recording', 'Only verbal parent agreement', 'The mentor\'s discretion'], ans: 1, explain: 'One-to-one mentoring needs DSL approval, parent/guardian consent, and sessions conducted via platform with recording.' },
+      { q: 'During an online session, a participant posts offensive content in the chat. First response:', opts: ['Publicly shame the participant', 'Ignore it to avoid disruption', 'Address behaviour immediately and remind of Code of Conduct', 'End the session for everyone'], ans: 2, explain: 'Address the behaviour immediately, remind of Code of Conduct, and escalate to DSL if serious or repeated.' }
+    ]
+  },
+  {
+    id: 'm7',
+    num: 'Module 7',
+    title: 'Code of Conduct & Safe Recruitment',
+    desc: 'Professional boundaries, behaviour standards, and recruitment',
+    content: `
+      <div class="content-section">
+        <h3>Professional Boundaries</h3>
+        <p>Maintaining clear boundaries protects both children and staff. Key requirements:</p>
+        <ul>
+          <li>Maintain appropriate professional relationships <strong>at all times</strong></li>
+          <li>Avoid being alone with a child unless necessary — ensure visibility</li>
+          <li>Do NOT share personal contact details with participants</li>
+          <li>Do NOT provide private tutoring outside Project STAR programmes</li>
+          <li>Transport in private vehicles is <strong>prohibited</strong> except in emergencies with DSL authorisation</li>
+        </ul>
+      </div>
+      <div class="content-section">
+        <h3>Prohibited Conduct</h3>
+        <div class="info-box danger">
+          <div class="ib-icon">🚫</div>
+          <div>
+            <p>The following are <strong>strictly prohibited</strong>:</p>
+            <ul style="margin-top:.5rem">
+              <li>Physical punishment or degrading treatment</li>
+              <li>Intimate or sexual relationships with participants (including those aged 16-17)</li>
+              <li>Favouritism or preferential treatment</li>
+              <li>Sharing alcohol, tobacco, or illegal substances</li>
+              <li>Engaging in or facilitating examination malpractice</li>
+              <li>Using position for personal gain or exploitation</li>
+              <li>Unauthorised photography/video of participants</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Consequences of Code Breach</h3>
+        <table class="resp-table">
+          <tr><th>Severity</th><th>Examples</th><th>Consequence</th></tr>
+          <tr><td>Minor</td><td>Poor judgment, lack of awareness</td><td>Recorded conversation, additional training, monitoring</td></tr>
+          <tr><td>Moderate</td><td>Inappropriate behaviour, boundary violations</td><td>Formal warning, suspension from working with children, retraining</td></tr>
+          <tr><td>Serious</td><td>Abuse, serious misconduct</td><td>Immediate suspension, investigation, dismissal, referral to authorities</td></tr>
+        </table>
+      </div>
+      <div class="content-section">
+        <h3>Safe Recruitment</h3>
+        <p>Project STAR implements a rigorous 9-stage safer recruitment process:</p>
+        <ol>
+          <li><strong>Role Definition</strong> — Job description includes safeguarding responsibilities</li>
+          <li><strong>Advertising</strong> — Safeguarding commitment stated in advert</li>
+          <li><strong>Application</strong> — Safeguarding declaration included</li>
+          <li><strong>Shortlisting</strong> — Review for safeguarding concerns</li>
+          <li><strong>Interview</strong> — Safeguarding questions, values-based assessment</li>
+          <li><strong>Reference Checks</strong> — Safeguarding-specific questions to referees</li>
+          <li><strong>Background Checks</strong> — Nigeria Police Force criminal record check</li>
+          <li><strong>Pre-Employment Clearance</strong> — DSL signs off safeguarding clearance</li>
+          <li><strong>Induction</strong> — Mandatory safeguarding training before working with children</li>
+        </ol>
+        <div class="info-box tip">
+          <div class="ib-icon">📋</div>
+          <p>Background checks are repeated <strong>every three years</strong> for ongoing roles. Roles with unsupervised access require enhanced screening.</p>
+        </div>
+      </div>
+    `,
+    quiz: [
+      { q: 'A participant aged 17 expresses romantic interest in a staff member. The staff member should:', opts: ['Reciprocate — the participant is nearly an adult', 'Maintain professional boundaries — relationships with participants (including ages 16-17) are prohibited', 'Report the participant for inappropriate behaviour', 'Ask the parent for permission'], ans: 1, explain: 'Intimate or sexual relationships with participants — including those aged 16-17 — are strictly prohibited.' },
+      { q: 'How often are background checks renewed for ongoing staff roles?', opts: ['Annually', 'Every 2 years', 'Every 3 years', 'Only at initial hiring'], ans: 2, explain: 'Background checks are repeated every three years for ongoing roles.' },
+      { q: 'Can staff transport participants in their private vehicle?', opts: ['Yes, always', 'Yes, with parent permission', 'No, except in emergency with DSL authorisation', 'Yes, if another adult is present'], ans: 2, explain: 'Transport in private vehicles is prohibited except in emergency with DSL authorisation.' },
+      { q: 'What is the final safeguarding "gate" before someone can work with children?', opts: ['Passing the interview', 'DSL signs off safeguarding clearance', 'Completing the application', 'Getting references'], ans: 1, explain: 'Pre-Employment Clearance — the DSL signs off safeguarding clearance as the final gate before employment.' },
+      { q: 'A false declaration on the Self-Disclosure Form results in:', opts: ['A verbal warning', 'Resubmission of the form', 'Immediate dismissal and possible referral to authorities', 'Probation extension'], ans: 2, explain: 'False declaration is grounds for immediate dismissal and may be referred to authorities.' }
+    ]
+  },
+  {
+    id: 'm8',
+    num: 'Module 8',
+    title: 'Training, Monitoring & Review',
+    desc: 'Continuous improvement, audit, and multi-agency working',
+    content: `
+      <div class="content-section">
+        <h3>Training Requirements</h3>
+        <table class="resp-table">
+          <tr><th>Role</th><th>Training</th><th>Duration</th><th>Renewal</th></tr>
+          <tr><td>All Staff & Volunteers</td><td>Mandatory Safeguarding Induction</td><td>3 hours</td><td>Annual refresher (1 hr)</td></tr>
+          <tr><td>Session Safeguarding Leads</td><td>Specialist SSL Training</td><td>6 hours</td><td>Every 2 years</td></tr>
+          <tr><td>DSL & Deputy DSL</td><td>Professional DSL Training</td><td>12 hours (accredited)</td><td>Every 3 years</td></tr>
+          <tr><td>Board Members</td><td>Board Safeguarding Training</td><td>3 hours</td><td>Every 3 years</td></tr>
+        </table>
+        <div class="info-box warning">
+          <div class="ib-icon">⚠️</div>
+          <p>No one may have unsupervised contact with children until they have completed their mandatory safeguarding induction training and passed the knowledge check.</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Monitoring & Audit</h3>
+        <p>Safeguarding effectiveness is continuously monitored through:</p>
+        <ul>
+          <li><strong>Monthly:</strong> DSL reviews incident log for patterns or trends</li>
+          <li><strong>Quarterly:</strong> Safeguarding report to Board; DSL meets Board Champion</li>
+          <li><strong>Annually:</strong> Full independent safeguarding audit and policy review</li>
+        </ul>
+        <p>Key indicators tracked include: number/types of concerns reported, response times, training compliance rates, incident patterns, participant and parent feedback, and regulatory compliance.</p>
+      </div>
+      <div class="content-section">
+        <h3>Multi-Agency Working</h3>
+        <p>Effective safeguarding requires collaboration. Project STAR's key partner agencies include:</p>
+        <div class="accordion">
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🏫 Oyo State MoEST <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Regulatory oversight. Serious safeguarding incidents reported. Project STAR cooperates with inspections.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">👮 Nigeria Police Force <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Investigation of criminal offences. Mandatory referral for serious abuse, sexual offences, exploitation, FGM, forced marriage.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">🏥 Health Services <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Medical assessment and treatment, mental health support. DSL maintains referral pathways.</div></div>
+          </div>
+          <div class="acc-item">
+            <div class="acc-header" onclick="toggleAcc(this)">📝 JAMB & WAEC <span class="arrow">▼</span></div>
+            <div class="acc-body"><div class="acc-body-inner">Examination bodies. Malpractice reported to them. Cooperation with their investigations.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="content-section">
+        <h3>Learning from Incidents</h3>
+        <p>All significant incidents undergo formal review asking: What happened? What went well? What could improve? Were procedures followed? What systemic changes are needed?</p>
+        <p>Learning is shared (anonymised) with staff through training, with the Board through quarterly reports, and with partner organisations where relevant.</p>
+        <div class="info-box tip">
+          <div class="ib-icon">🔄</div>
+          <p>The Safeguarding Policy is reviewed <strong>annually</strong> (or sooner if a significant incident occurs or legislation changes), with input from staff, participants, parents, the Board, partners, and regulators.</p>
+        </div>
+      </div>
+    `,
+    quiz: [
+      { q: 'How long is the mandatory safeguarding induction for all staff?', opts: ['1 hour', '2 hours', '3 hours', '6 hours'], ans: 2, explain: 'The mandatory safeguarding induction is a minimum of 3 hours.' },
+      { q: 'How often does an independent safeguarding audit take place?', opts: ['Monthly', 'Quarterly', 'Annually', 'Every 3 years'], ans: 2, explain: 'Project STAR commissions an annual independent safeguarding audit.' },
+      { q: 'SSL specialist training is renewed every:', opts: ['Year', '2 years', '3 years', '5 years'], ans: 1, explain: 'SSL specialist training is renewed every 2 years.' },
+      { q: 'Which agency receives mandatory referrals for FGM cases?', opts: ['MoEST only', 'JAMB', 'Nigeria Police Force', 'Health services only'], ans: 2, explain: 'FGM requires mandatory referral to police and/or social services.' },
+      { q: 'What is the PRIMARY purpose of learning from safeguarding incidents?', opts: ['To assign blame', 'To prevent recurrence through systemic improvement', 'To satisfy regulators', 'To discipline staff'], ans: 1, explain: 'The primary purpose is to prevent recurrence through policy updates, training improvements, and systemic changes.' }
+    ]
+  }
+];
+
+// Move MODULES to PSTAR namespace
+PSTAR.MODULES = MODULES;
+
+// ═══════════ LOGIN ═══════════
+function initLogin() {
+  const logoSrc = document.getElementById('starLogoSrc').value;
+  document.getElementById('loginLogo').src = logoSrc;
+
+  // Check for last used staff ID in sessionStorage (lightweight local hint only)
+  const lastId = sessionStorage.getItem('pstar_lastId');
+  if (lastId) {
+    document.getElementById('loginStaffId').value = lastId;
+    checkReturningUser(lastId);
+  }
+}
+
+async function checkReturningUser(staffId) {
+  try {
+    const data = await api('GET', '/api/user/' + encodeURIComponent(staffId));
+    if (data.exists) {
+      document.getElementById('loginName').value = data.name;
+      if (data.role) document.getElementById('loginRole').value = data.role;
+      const retDiv = document.getElementById('returningUser');
+      retDiv.style.display = 'block';
+      retDiv.innerHTML = '<div class="login-returning"><strong>Welcome back, ' + data.name + '!</strong><span>' + data.completedCount + ' of 8 modules completed. Sign in to continue where you left off.</span></div>';
+    }
+  } catch (e) {}
+}
+
+// On staff ID blur, check if returning
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('loginStaffId').addEventListener('blur', function() {
+    const val = this.value.trim();
+    if (val.length > 2) checkReturningUser(val);
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Bind the login button
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn) {
+    loginBtn.addEventListener('click', handleLogin);
+  }
+  
+  // Bind the admin link
+  const adminLink = document.getElementById('adminLoginLink');
+  if (adminLink) {
+    adminLink.addEventListener('click', showAdminLogin);
+  }
+
+  // Bind the login button
+  const beginCourse = document.getElementById('beginCourse');
+  if (beginCourse) {
+    beginCourse.addEventListener('click', startCourse);
+  }
+});
+
+async function handleLogin() {
+  console.log('first')
+  const name = document.getElementById('loginName').value.trim();
+  const staffId = document.getElementById('loginStaffId').value.trim();
+  const role = document.getElementById('loginRole').value;
+  const errEl = document.getElementById('loginError');
+
+  console.log('busola')
+
+  if (!name) { errEl.textContent = 'Please enter your full name.'; errEl.style.display = 'block'; return; }
+  if (!staffId) { errEl.textContent = 'Please enter your Staff ID or email.'; errEl.style.display = 'block'; return; }
+  if (!role) { errEl.textContent = 'Please select your role.'; errEl.style.display = 'block'; return; }
+
+  errEl.style.display = 'none';
+
+  console.log(name, staffId, role, errEl)
+
+  try {
+    const data = await api('POST', '/api/login', { staffId, name, role });
+    currentUser = data.user;
+    state.completed = data.state.completed || {};
+    state.quizAnswers = data.state.quizAnswers || {};
+
+    sessionStorage.setItem('pstar_lastId', staffId);
+
+    document.getElementById('loginScreen').style.display = 'none';
+
+    const completedCount = Object.keys(state.completed).length;
+    if (completedCount > 0) {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('topbar').classList.add('active');
+      state.started = true;
+      showDashboard();
+    } else {
+      document.getElementById('splash').style.display = 'flex';
+    }
+  } catch (e) {
+    errEl.textContent = 'Connection error. Please try again.';
+    errEl.style.display = 'block';
+  }
+}
+
+// ═══════════ ADMIN LOGIN ═══════════
+function showAdminLogin() {
+  document.getElementById('adminLoginOverlay').style.display = 'flex';
+  document.getElementById('adminPass').focus();
+}
+function hideAdminLogin() {
+  document.getElementById('adminLoginOverlay').style.display = 'none';
+  document.getElementById('adminPass').value = '';
+  document.getElementById('adminError').style.display = 'none';
+}
+async function handleAdminLogin() {
+  const pass = document.getElementById('adminPass').value;
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passphrase: pass })
+    });
+    if (res.ok) {
+      adminKey = pass;
+      hideAdminLogin();
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('splash').style.display = 'none';
+      showTracker();
+    } else {
+      const err = document.getElementById('adminError');
+      err.textContent = 'Incorrect passphrase. Please try again.';
+      err.style.display = 'block';
+    }
+  } catch (e) {
+    document.getElementById('adminError').textContent = 'Connection error.';
+    document.getElementById('adminError').style.display = 'block';
+  }
+}
+
+// ═══════════ COURSE INIT ═══════════
+function startCourse() {
+  document.getElementById('splash').style.display = 'none';
+  document.getElementById('topbar').classList.add('active');
+  state.started = true;
+  showDashboard();
+}
+
+function showDashboard() {
+  hideAll();
+  document.getElementById('dashboard').classList.add('active');
+  updateUserBadge();
+  renderModuleNav();
+  updateProgress();
+}
+
+function hideAll() {
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('moduleContainer').classList.remove('active');
+  document.getElementById('certificate').classList.remove('active');
+  document.getElementById('trackerScreen').classList.remove('active');
+}
+
+function updateUserBadge() {
+  let badge = document.getElementById('userBadge');
+  if (!badge && currentUser) {
+    const topbar = document.getElementById('topbar');
+    badge = document.createElement('div');
+    badge.id = 'userBadge';
+    badge.style.cssText = 'font-size:.8rem;color:var(--text-light);margin-left:auto;white-space:nowrap;display:flex;align-items:center;gap:.5rem;';
+    badge.innerHTML = '<span>👤 ' + currentUser.name + '</span><a onclick="logoutUser()" style="font-size:.75rem;cursor:pointer;color:var(--text-muted);text-decoration:underline">Sign out</a>';
+    topbar.appendChild(badge);
+  }
+}
+
+function logoutUser() {
+  currentUser = null;
+  state = { started: false, currentModule: null, completed: {}, quizAnswers: {} };
+  hideAll();
+  document.getElementById('topbar').classList.remove('active');
+  const badge = document.getElementById('userBadge');
+  if (badge) badge.remove();
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('splash').style.display = 'none';
+  initLogin();
+}
+
+// ═══════════ MODULE NAV ═══════════
+function renderModuleNav() {
+  const nav = document.getElementById('moduleNav');
+  nav.innerHTML = MODULES.map((m, i) => {
+    const done = state.completed[m.id];
+    const cls = done ? 'completed' : (state.currentModule === m.id ? 'current' : '');
+    return '<div class="module-card ' + cls + '" onclick="openModule(\'' + m.id + '\')">' +
+      '<div class="mc-num">' + m.num + '</div>' +
+      '<div class="mc-title">' + m.title + '</div>' +
+      '<div class="mc-desc">' + m.desc + '</div>' +
+      '<div class="mc-status ' + (done ? 'done' : '') + '">' + (done ? '✓' : (i + 1)) + '</div>' +
+    '</div>';
+  }).join('');
+
+  const allDone = MODULES.every(m => state.completed[m.id]);
+  if (allDone) {
+    nav.innerHTML += '<div class="module-card" style="border:2px solid var(--green);background:linear-gradient(135deg,var(--green-light),#d4edda);cursor:pointer;grid-column:1/-1;text-align:center" onclick="showCertificate()">' +
+      '<div class="mc-title" style="font-size:1.2rem;color:var(--green-dark)">🎓 View Your Certificate</div>' +
+      '<div class="mc-desc">All modules completed! Claim your certificate of completion.</div>' +
+    '</div>';
+  }
+}
+
+// ═══════════ OPEN MODULE ═══════════
+function openModule(id) {
+  const mod = MODULES.find(m => m.id === id);
+  if (!mod) return;
+  state.currentModule = id;
+  hideAll();
+  const container = document.getElementById('moduleContainer');
+  container.classList.add('active');
+
+  container.innerHTML = `
+    <div class="module-view active">
+      <div class="module-header">
+        <img src="${document.getElementById('starLogoSrc').value}" class="star-logo-sm" alt="Project STAR LGS" style="position:absolute;top:1.2rem;right:1.5rem;height:36px;opacity:.7">
+        <div class="mh-num">${mod.num} of ${MODULES.length}</div>
+        <h2>${mod.title}</h2>
+        <p>${mod.desc}</p>
+      </div>
+      ${mod.content}
+      <div class="quiz-section" id="quiz-${id}">
+        <h3>📝 Knowledge Check</h3>
+        <p class="quiz-subtitle">Answer all questions to complete this module. You need 80% to pass.</p>
+        ${mod.quiz.map((q, qi) => `
+          <div class="quiz-q" id="q-${id}-${qi}">
+            <p>${qi + 1}. ${q.q}</p>
+            ${q.opts.map((o, oi) => `
+              <label>
+                <input type="radio" name="q-${id}-${qi}" value="${oi}" onchange="selectAnswer('${id}',${qi},${oi})">
+                ${o}
+              </label>
+            `).join('')}
+            <div class="feedback" id="fb-${id}-${qi}"></div>
+          </div>
+        `).join('')}
+        <div id="result-${id}" class="quiz-result"></div>
+        <button class="btn btn-green" id="submitBtn-${id}" onclick="submitQuiz('${id}')">Submit Answers</button>
+      </div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem">
+        ${getModuleIndex(id) > 0 ? '<button class="btn btn-outline" onclick="openModule(\'' + MODULES[getModuleIndex(id) - 1].id + '\')">← Previous</button>' : ''}
+        <button class="btn btn-outline" onclick="showDashboard()">Dashboard</button>
+        ${getModuleIndex(id) < MODULES.length - 1 ? '<button class="btn btn-green" onclick="openModule(\'' + MODULES[getModuleIndex(id) + 1].id + '\')">Next Module →</button>' : ''}
+      </div>
+    </div>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getModuleIndex(id) {
+  return MODULES.findIndex(m => m.id === id);
+}
+
+// ═══════════ QUIZ ═══════════
+function selectAnswer(modId, qIdx, optIdx) {
+  if (!state.quizAnswers[modId]) state.quizAnswers[modId] = {};
+  state.quizAnswers[modId][qIdx] = optIdx;
+  // Debounced server save
+  clearTimeout(selectAnswer._timer);
+  selectAnswer._timer = setTimeout(() => {
+    saveQuizAnswersToServer(modId, state.quizAnswers[modId]);
+  }, 1500);
+}
+
+async function submitQuiz(modId) {
+  const mod = MODULES.find(m => m.id === modId);
+  let correct = 0;
+  mod.quiz.forEach((q, qi) => {
+    const selected = state.quizAnswers[modId]?.[qi];
+    const fb = document.getElementById('fb-' + modId + '-' + qi);
+    if (selected === q.ans) {
+      correct++;
+      fb.className = 'feedback correct';
+      fb.innerHTML = '✅ Correct! ' + q.explain;
+    } else {
+      fb.className = 'feedback incorrect';
+      fb.innerHTML = '❌ Incorrect. ' + q.explain;
+    }
+    document.querySelectorAll('input[name="q-' + modId + '-' + qi + '"]').forEach(inp => inp.disabled = true);
+  });
+
+  const total = mod.quiz.length;
+  const pct = Math.round((correct / total) * 100);
+  const passed = pct >= 80;
+
+  const result = document.getElementById('result-' + modId);
+  result.style.display = 'block';
+  result.className = 'quiz-result ' + (passed ? 'pass' : 'fail');
+  result.innerHTML = '<div class="quiz-score">' + pct + '%</div>' +
+    '<h4>' + (passed ? '🎉 Module Passed!' : '⚠️ Not Yet Passed') + '</h4>' +
+    '<p>' + (passed ? 'You scored ' + correct + '/' + total + '. This module is now complete.' : 'You scored ' + correct + '/' + total + '. You need 80% to pass. Review the material and try again.') + '</p>' +
+    (!passed ? '<button class="btn btn-outline btn-sm" onclick="retryQuiz(\'' + modId + '\')" style="margin-top:1rem">Retry Quiz</button>' : '');
+
+  if (passed) {
+    state.completed[modId] = { score: correct, total, passed: true, completedAt: new Date().toISOString() };
+    document.getElementById('submitBtn-' + modId).style.display = 'none';
+    await saveModuleProgress(modId, correct, total, true);
+  }
+  updateProgress();
+}
+
+function retryQuiz(modId) {
+  state.quizAnswers[modId] = {};
+  saveQuizAnswersToServer(modId, {});
+  openModule(modId);
+  setTimeout(() => {
+    document.getElementById('quiz-' + modId).scrollIntoView({ behavior: 'smooth' });
+  }, 300);
+}
+
+// ═══════════ PROGRESS ═══════════
+function updateProgress() {
+  const done = Object.keys(state.completed).length;
+  const total = MODULES.length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+
+  const ring = document.getElementById('ringFg');
+  const ringPct = document.getElementById('ringPct');
+  if (ring && ringPct) {
+    const circumference = 345.58;
+    ring.style.strokeDashoffset = circumference - (circumference * pct / 100);
+    ringPct.textContent = pct + '%';
+  }
+}
+
+// ═══════════ CERTIFICATE ═══════════
+async function showCertificate() {
+  const allDone = MODULES.every(m => state.completed[m.id]);
+  if (!allDone) return;
+  hideAll();
+  document.getElementById('certificate').classList.add('active');
+  document.getElementById('certDate').textContent = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('certName').textContent = currentUser ? currentUser.name : 'Learner';
+  if (currentUser) {
+    await api('POST', '/api/certificate', { staffId: currentUser.staffId });
+  }
+}
+
+// ═══════════ ADMIN TRACKER ═══════════
+async function showTracker() {
+  hideAll();
+  document.getElementById('topbar').classList.remove('active');
+  document.getElementById('trackerScreen').classList.add('active');
+  await refreshTracker();
+}
+
+let trackerCache = [];
+
+async function refreshTracker() {
+  try {
+    const data = await api('GET', '/api/admin/tracker?key=' + encodeURIComponent(adminKey));
+    trackerCache = data.users || [];
+  } catch (e) {
+    trackerCache = [];
+  }
+
+  const totalUsers = trackerCache.length;
+  const completedUsers = trackerCache.filter(u => Object.keys(u.completed || {}).length === 8).length;
+  const inProgressUsers = trackerCache.filter(u => { const c = Object.keys(u.completed || {}).length; return c > 0 && c < 8; }).length;
+  const notStarted = totalUsers - completedUsers - inProgressUsers;
+  const avgProgress = totalUsers > 0 ? Math.round(trackerCache.reduce((s, u) => s + Object.keys(u.completed || {}).length, 0) / totalUsers / 8 * 100) : 0;
+
+  document.getElementById('trackerStats').innerHTML =
+    '<div class="tracker-stat-card"><div class="tsc-val">' + totalUsers + '</div><div class="tsc-label">Total Enrolled</div></div>' +
+    '<div class="tracker-stat-card"><div class="tsc-val" style="color:var(--green)">' + completedUsers + '</div><div class="tsc-label">Fully Completed</div></div>' +
+    '<div class="tracker-stat-card"><div class="tsc-val" style="color:var(--amber)">' + inProgressUsers + '</div><div class="tsc-label">In Progress</div></div>' +
+    '<div class="tracker-stat-card"><div class="tsc-val" style="color:var(--text-muted)">' + notStarted + '</div><div class="tsc-label">Not Started</div></div>' +
+    '<div class="tracker-stat-card"><div class="tsc-val">' + avgProgress + '%</div><div class="tsc-label">Avg. Progress</div></div>';
+
+  renderTrackerTable(trackerCache);
+}
+
+function renderTrackerTable(users) {
+  const body = document.getElementById('trackerBody');
+  const empty = document.getElementById('trackerEmpty');
+
+  if (users.length === 0) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = 'No learners have enrolled yet.';
+    return;
+  }
+  empty.style.display = 'none';
+
+  body.innerHTML = users.map(u => {
+    const comp = u.completed || {};
+    const completedCount = Object.keys(comp).length;
+    const pct = Math.round(completedCount / 8 * 100);
+    const lastActive = u.lastActive ? new Date(u.lastActive).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+    const moduleDots = MODULES.map(m => {
+      const done = comp[m.id];
+      return '<span class="mod-dot ' + (done ? 'done' : 'pending') + '" title="' + m.title + (done ? ' ✓' : '') + '">' + (done ? '✓' : '') + '</span>';
+    }).join('');
+
+    return '<tr onclick="showUserDetail(\'' + u.staffId.replace(/'/g, "\\'") + '\')" style="cursor:pointer">' +
+      '<td><strong>' + u.name + '</strong></td>' +
+      '<td style="font-family:JetBrains Mono,monospace;font-size:.8rem">' + u.staffId + '</td>' +
+      '<td>' + (u.role || '—') + '</td>' +
+      '<td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress-bar-sm"><div class="fill" style="width:' + pct + '%"></div></div><span style="font-family:JetBrains Mono,monospace;font-size:.8rem;min-width:35px">' + pct + '%</span></div></td>' +
+      '<td colspan="8" style="text-align:center">' + moduleDots + '</td>' +
+      '<td style="font-size:.82rem;color:var(--text-light)">' + lastActive + '</td>' +
+      '<td style="color:var(--text-muted);font-size:.8rem">→</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function filterTracker() {
+  const q = document.getElementById('trackerSearchInput').value.toLowerCase().trim();
+  const filtered = trackerCache.filter(u => {
+    if (!q) return true;
+    return u.name.toLowerCase().includes(q) ||
+           u.staffId.toLowerCase().includes(q) ||
+           (u.role || '').toLowerCase().includes(q);
+  });
+  renderTrackerTable(filtered);
+  document.getElementById('trackerEmpty').style.display = filtered.length === 0 ? 'block' : 'none';
+  if (filtered.length === 0) document.getElementById('trackerEmpty').textContent = 'No learners found matching your search.';
+}
+
+function showUserDetail(staffId) {
+  const data = trackerCache.find(u => u.staffId === staffId);
+  if (!data) return;
+  const comp = data.completed || {};
+  const completedCount = Object.keys(comp).length;
+  const pct = Math.round(completedCount / 8 * 100);
+
+  const card = document.getElementById('userDetailCard');
+  card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem"><div>' +
+    '<h3 style="margin-bottom:.3rem">' + data.name + '</h3>' +
+    '<p style="font-size:.9rem;color:var(--text-light)">' + data.staffId + ' · ' + (data.role || '—') + '</p>' +
+    '<p style="font-size:.82rem;color:var(--text-muted);margin-top:.3rem">Enrolled: ' + (data.firstLogin ? new Date(data.firstLogin).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—') + '</p>' +
+    '</div><div style="text-align:center"><div style="font-family:JetBrains Mono,monospace;font-size:2rem;font-weight:700;color:var(--green-dark)">' + pct + '%</div><div style="font-size:.78rem;color:var(--text-muted)">' + completedCount + ' of 8</div></div></div>' +
+    '<div style="border-top:1px solid var(--border);padding-top:1rem">' +
+    MODULES.map(m => {
+      const done = comp[m.id];
+      const dateStr = done?.completedAt ? new Date(done.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+      const scoreStr = done ? done.score + '/' + done.total + ' (' + Math.round(done.score/done.total*100) + '%)' : '';
+      return '<div class="udm-row"><div class="udm-module">' + m.num + '. ' + m.title + '</div>' +
+        '<div style="display:flex;align-items:center;gap:.6rem">' +
+        (scoreStr ? '<span style="font-size:.8rem;color:var(--text-light);font-family:JetBrains Mono,monospace">' + scoreStr + '</span>' : '') +
+        (dateStr ? '<span style="font-size:.75rem;color:var(--text-muted)">' + dateStr + '</span>' : '') +
+        '<span class="udm-status ' + (done ? 'complete' : 'incomplete') + '">' + (done ? 'Complete' : 'Incomplete') + '</span></div></div>';
+    }).join('') +
+    '</div>' +
+    '<div style="margin-top:1.5rem;text-align:right"><button class="btn btn-sm btn-outline" onclick="closeUserDetail()">Close</button></div>';
+
+  document.getElementById('userDetailModal').style.display = 'flex';
+}
+
+function closeUserDetail() {
+  document.getElementById('userDetailModal').style.display = 'none';
+}
+
+function exportTrackerCSV() {
+  // Direct download from server
+  window.open('/api/admin/export?key=' + encodeURIComponent(adminKey), '_blank');
+}
+
+function logoutAdmin() {
+  adminKey = null;
+  hideAll();
+  document.getElementById('trackerScreen').classList.remove('active');
+  document.getElementById('loginScreen').style.display = 'flex';
+  initLogin();
+}
+
+// ═══════════ BOOT ═══════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('splash').style.display = 'none';
+  initLogin();
+});
+
+</script>
+</body>
+</html>
