@@ -50,6 +50,14 @@ body.admin-mode #topbar {
 </head>
 <body>
 
+<!-- ═══════════ LOADING OVERLAY ═══════════ -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p class="loading-text" id="loadingText">Loading...</p>
+  </div>
+</div>
+
 <div class="topbar" id="topbar">
    <div class="topbar-logo"><img src="https://res.cloudinary.com/the-tom-media/image/upload/v1770987917/logo_rxhfca.jpg" class="star-logo-sm" alt="Project STAR LGS"> Project STAR</div>
   <div class="topbar-progress"><div class="topbar-progress-fill" id="progressFill"></div></div>
@@ -503,6 +511,7 @@ function switchTab(tabEl, panelId) {
 
 <script src="/js/config.js"></script>
 <script src="/js/state.js"></script>
+<script src="/js/loading.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/ui.js"></script>
 <script src="/js/admin-modules.js"></script>
@@ -639,6 +648,11 @@ async function refreshTrackerData() {
     return;
   }
   
+  // Show loading
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Loading tracker data...');
+  }
+  
   try {
     const url = `/api/admin/tracker?key=${encodeURIComponent(PSTAR.ADMIN_KEY)}`;
     const res = await fetch(url);
@@ -688,6 +702,10 @@ async function refreshTrackerData() {
   } catch (e) {
     console.error('[Admin] Tracker refresh error:', e);
     throw e;
+  } finally {
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -809,10 +827,21 @@ function checkAdminAuth() {
 
 async function loadModulesList() {
   if (!checkAdminAuth()) return;
+  
+  // Show loading
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Loading modules...');
+  }
+  
   try {
     // First check if server is reachable
     const serverReachable = await checkServerConnection();
-    if (!serverReachable) return;
+    if (!serverReachable) {
+      if (typeof window.hideLoading === 'function') {
+        window.hideLoading();
+      }
+      return;
+    }
 
     const url = `/api/admin/modules?key=${PSTAR.ADMIN_KEY}&includeInactive=true`;
     console.log('[Admin] Loading modules list:', url.replace(PSTAR.ADMIN_KEY, '[HIDDEN]'));
@@ -879,6 +908,10 @@ async function loadModulesList() {
   } catch (err) {
     console.error('[Admin] Load modules error:', err);
     alert('Failed to load modules: ' + err.message);
+  } finally {
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -964,6 +997,11 @@ function closeModuleForm() {
 async function toggleModuleActive(moduleId) {
   if (!checkAdminAuth()) return;
 
+  // Show loading
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Updating module...');
+  }
+
   try {
     const url = `/api/admin/modules/${encodeURIComponent(moduleId)}/toggle?key=${PSTAR.ADMIN_KEY}`;
     console.log('[Admin] Toggle module:', url.replace(PSTAR.ADMIN_KEY, '[HIDDEN]'));
@@ -986,6 +1024,10 @@ async function toggleModuleActive(moduleId) {
   } catch (err) {
     console.error('[Admin] Toggle module error:', err);
     alert('Failed to toggle module: ' + err.message);
+  } finally {
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -994,6 +1036,11 @@ async function confirmDeleteModule(moduleId) {
 
   if (!confirm(`Are you sure you want to delete this module?\n\nThis will also delete all associated questions and student progress for this module. This action cannot be undone.`)) {
     return;
+  }
+
+  // Show loading
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Deleting module...');
   }
 
   try {
@@ -1019,6 +1066,10 @@ async function confirmDeleteModule(moduleId) {
   } catch (err) {
     console.error('[Admin] Delete module error:', err);
     alert('Failed to delete module: ' + err.message);
+  } finally {
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -1032,11 +1083,22 @@ function startCourse() {
 
 function showDashboard() {
   console.log('[Dashboard] Showing dashboard. Completed modules:', Object.keys(PSTAR_STATE.completed));
+  
+  // Show loading if modules aren't loaded yet
+  if (PSTAR.MODULES.length === 0 && typeof window.showLoading === 'function') {
+    window.showLoading('Loading dashboard...');
+  }
+  
   hideAllScreens();
   document.getElementById('dashboard').classList.add('active');
   updateUserBadge();
   renderModuleNav();
   updateProgress();
+  
+  // Hide loading after render
+  if (typeof window.hideLoading === 'function') {
+    setTimeout(() => window.hideLoading(), 100);
+  }
 }
 
 function hideAllScreens() {
@@ -1109,6 +1171,11 @@ function openModule(id) {
   
   console.log('[Module] Opening:', id, mod.title);
   
+  // Show loading while rendering module
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Loading module...');
+  }
+  
   PSTAR_STATE.currentModule = id;
   hideAllScreens();
   const container = document.getElementById('moduleContainer');
@@ -1146,6 +1213,12 @@ function openModule(id) {
         ${getModuleIndex(id) < PSTAR.MODULES.length - 1 ? '<button class="btn btn-green" onclick="openModule(\'' + PSTAR.MODULES[getModuleIndex(id) + 1].id + '\')">Next Module →</button>' : ''}
       </div>
     </div>`;
+  
+  // Hide loading after module is rendered
+  if (typeof window.hideLoading === 'function') {
+    setTimeout(() => window.hideLoading(), 100);
+  }
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1168,9 +1241,17 @@ function selectAnswer(modId, qIdx, optIdx) {
 async function submitQuiz(modId) {
   console.log('[Quiz] Submitting quiz for:', modId);
   
+  // Show loading while processing quiz
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Submitting quiz...');
+  }
+  
   const mod = PSTAR.MODULES.find(m => m.id === modId);
   if (!mod) {
     console.error('[Quiz] Module not found:', modId);
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
     return;
   }
   
@@ -1232,6 +1313,11 @@ async function submitQuiz(modId) {
   }
   
   updateProgress();
+  
+  // Hide loading after quiz is processed
+  if (typeof window.hideLoading === 'function') {
+    window.hideLoading();
+  }
 }
 
 function retryQuiz(modId) {
@@ -1276,12 +1362,25 @@ async function showCertificate() {
     console.log('[Certificate] Not all modules completed yet');
     return;
   }
+  
+  // Show loading while saving certificate
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Generating certificate...');
+  }
+  
   hideAllScreens();
   document.getElementById('certificate').classList.add('active');
   document.getElementById('certDate').textContent = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   document.getElementById('certName').textContent = PSTAR_STATE.currentUser ? PSTAR_STATE.currentUser.name : 'Learner';
-  if (PSTAR_STATE.currentUser) {
-    await api('POST', '/api/certificate', { staffId: PSTAR_STATE.currentUser.staffId });
+  
+  try {
+    if (PSTAR_STATE.currentUser) {
+      await api('POST', '/api/certificate', { staffId: PSTAR_STATE.currentUser.staffId });
+    }
+  } finally {
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -1290,6 +1389,9 @@ async function loadModulesFromAPI() {
   try {
     console.log('[Modules] Loading from API...');
     const res = await fetch('/api/modules');
+    if (!res.ok) {
+      throw new Error(`Failed to load modules: ${res.status}`);
+    }
     const data = await res.json();
 
     if (data.modules && Array.isArray(data.modules)) {
@@ -1336,57 +1438,122 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('[App] Project STAR - Initializing...');
   console.log('[App] ═══════════════════════════════════════');
 
-  // Restore admin key from sessionStorage if exists
-  const savedAdminKey = sessionStorage.getItem('pstar_admin_key');
-  if (savedAdminKey) {
-    PSTAR.ADMIN_KEY = savedAdminKey;
-    console.log('[Admin] Admin key restored from session');
+  // Show initial loading
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Initializing...');
   }
 
-  // Check for reset token in URL
-  checkForResetToken();
+  try {
+    // Restore admin key from sessionStorage if exists
+    const savedAdminKey = sessionStorage.getItem('pstar_admin_key');
+    if (savedAdminKey) {
+      PSTAR.ADMIN_KEY = savedAdminKey;
+      console.log('[Admin] Admin key restored from session');
+    }
 
-  // Load modules from API FIRST (needed for progress calculation)
-  await loadModulesFromAPI();
+    // Check for reset token in URL FIRST (before showing login)
+    if (typeof window.showLoading === 'function') {
+      window.showLoading('Checking reset link...');
+    }
+    const resetPasswordShown = await checkForResetToken();
 
-  // Check for existing session (restore login on page reload)
-  const hasSession = await checkSession();
+    // Load modules from API FIRST (needed for progress calculation)
+    if (typeof window.showLoading === 'function') {
+      window.showLoading('Loading course modules...');
+    }
+    await loadModulesFromAPI();
 
-  // Bind authentication event listeners
-  document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
-  document.getElementById('regBtn')?.addEventListener('click', handleRegistration);
-  document.getElementById('setPwdBtn')?.addEventListener('click', handleSetPassword);
-  document.getElementById('forgotPwdBtn')?.addEventListener('click', handleForgotPassword);
-  document.getElementById('resetPwdBtn')?.addEventListener('click', handleResetPassword);
-  document.getElementById('adminLoginLink')?.addEventListener('click', showAdminLogin);
-  document.getElementById('beginCourse')?.addEventListener('click', startCourse);
+    // Check for existing session (restore login on page reload)
+    if (typeof window.showLoading === 'function') {
+      window.showLoading('Checking session...');
+    }
+    
+    let hasSession = false;
+    try {
+      // Add timeout wrapper to ensure we don't hang forever
+      const sessionCheckPromise = checkSession();
+      const timeoutPromise = new Promise((resolve) => {
+        setTimeout(() => {
+          console.warn('[Init] Session check taking too long, assuming no session');
+          resolve(false);
+        }, 8000); // 8 second timeout
+      });
+      
+      hasSession = await Promise.race([sessionCheckPromise, timeoutPromise]);
+    } catch (err) {
+      console.error('[Init] Session check error:', err);
+      hasSession = false; // Assume no session on error
+    }
 
-  // Password validation listeners
-  document.getElementById('regPassword')?.addEventListener('input', (e) => {
-    validatePasswordUI(e.target.value, 'req');
-  });
+    // Bind authentication event listeners
+    document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
+    document.getElementById('regBtn')?.addEventListener('click', handleRegistration);
+    document.getElementById('setPwdBtn')?.addEventListener('click', handleSetPassword);
+    document.getElementById('forgotPwdBtn')?.addEventListener('click', handleForgotPassword);
+    document.getElementById('resetPwdBtn')?.addEventListener('click', handleResetPassword);
+    document.getElementById('adminLoginLink')?.addEventListener('click', showAdminLogin);
+    document.getElementById('beginCourse')?.addEventListener('click', startCourse);
 
-  document.getElementById('setPwdPassword')?.addEventListener('input', (e) => {
-    validatePasswordUI(e.target.value, 'setpwd-req');
-  });
+    // Password validation listeners
+    document.getElementById('regPassword')?.addEventListener('input', (e) => {
+      validatePasswordUI(e.target.value, 'req');
+    });
 
-  document.getElementById('resetPwdPassword')?.addEventListener('input', (e) => {
-    validatePasswordUI(e.target.value, 'resetpwd-req');
-  });
+    document.getElementById('setPwdPassword')?.addEventListener('input', (e) => {
+      validatePasswordUI(e.target.value, 'setpwd-req');
+    });
 
-  // Enter key handlers
-  document.getElementById('loginPassword')?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleLogin();
-  });
+    document.getElementById('resetPwdPassword')?.addEventListener('input', (e) => {
+      validatePasswordUI(e.target.value, 'resetpwd-req');
+    });
 
-  // Initialize - show login if no session was restored
-  if (!hasSession) {
-    document.getElementById('loginScreen').style.display = 'flex';
+    // Enter key handlers
+    document.getElementById('loginPassword')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    // Initialize - show login if no session was restored AND reset password screen wasn't shown
+    if (!hasSession && !resetPasswordShown) {
+      // Ensure login screen is visible
+      const loginScreen = document.getElementById('loginScreen');
+      if (loginScreen) {
+        loginScreen.style.display = 'flex';
+      }
+    }
+    
+    // Hide splash screen
+    const splash = document.getElementById('splash');
+    if (splash) {
+      splash.style.display = 'none';
+    }
+
+    console.log('[App] ✓ Initialization complete');
+    console.log('[App] Ready for user interaction');
+  } catch (err) {
+    console.error('[App] Initialization error:', err);
+    // On any error, show login screen
+    const loginScreen = document.getElementById('loginScreen');
+    if (loginScreen) {
+      loginScreen.style.display = 'flex';
+    }
+    const splash = document.getElementById('splash');
+    if (splash) {
+      splash.style.display = 'none';
+    }
+  } finally {
+    // Always hide loading after initialization completes (even on error)
+    // Use forceHideLoading as fallback to ensure loading is always cleared
+    if (typeof window.forceHideLoading === 'function') {
+      // Small delay to ensure UI updates are visible
+      setTimeout(() => {
+        window.forceHideLoading();
+      }, 100);
+    } else if (typeof window.hideLoading === 'function') {
+      setTimeout(() => {
+        window.hideLoading();
+      }, 100);
+    }
   }
-  document.getElementById('splash').style.display = 'none';
-
-  console.log('[App] ✓ Initialization complete');
-  console.log('[App] Ready for user interaction');
 });
 </script>
 

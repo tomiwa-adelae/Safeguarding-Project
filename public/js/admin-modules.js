@@ -167,11 +167,8 @@ function showAddModuleForm() {
 // ─── Edit Module ───
 async function editModule(moduleId) {
   try {
-    console.log(moduleId)
     const res = await fetch(`/api/admin/modules/${moduleId}?key=${PSTAR.ADMIN_KEY}`);
     const data = await res.json();
-
-    console.log(data)
 
     if (!data.module) {
       alert('Module not found');
@@ -243,8 +240,6 @@ async function editModule(moduleId) {
 async function saveModule(event) {
   event.preventDefault();
 
-  console.log(event)
-
   const moduleId = document.getElementById('moduleId').value;
   const moduleNum = document.getElementById('moduleNum').value;
   const moduleTitle = document.getElementById('moduleTitle').value;
@@ -262,19 +257,15 @@ async function saveModule(event) {
     is_active: moduleActive
   };
 
-  console.log(moduleData)
-
   try {
     let res;
     if (currentEditingModule) {
       // Update existing module
-      console.log(currentEditingModule)
       res = await fetch(`/api/admin/modules/${moduleId}?key=${PSTAR.ADMIN_KEY}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(moduleData)
       });
-      console.log(res)
     } else {
       // Create new module
       res = await fetch(`/api/admin/modules?key=${PSTAR.ADMIN_KEY}`, {
@@ -283,12 +274,9 @@ async function saveModule(event) {
         body: JSON.stringify({ module_id: moduleId, ...moduleData })
       });
 
-      console.log(res)
     }
 
     const data = await res.json();
-
-    console.log(data)
 
     if (res.ok && data.module) {
       alert(`Module ${currentEditingModule ? 'updated' : 'created'} successfully!`);
@@ -299,7 +287,6 @@ async function saveModule(event) {
       alert('Error: ' + (data.error || 'Failed to save module'));
     }
   } catch (err) {
-    console.log(err)
     console.error('[Admin] Save module error:', err);
     alert('Failed to save module');
   }

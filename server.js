@@ -190,7 +190,6 @@ app.post('/api/login', loginLimiter, async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('[API] Login error:', err.message);
     res.status(500).json({ error: 'Server error. Please try again.' });
   }
 });

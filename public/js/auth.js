@@ -4,23 +4,51 @@
 
 // ─── Screen Navigation ───
 function showLogin() {
+  // Hide all other screens
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('registrationScreen').style.display = 'none';
   document.getElementById('setPasswordScreen').style.display = 'none';
   document.getElementById('forgotPasswordScreen').style.display = 'none';
   document.getElementById('resetPasswordScreen').style.display = 'none';
+  document.getElementById('splash').style.display = 'none';
+  
+  // Hide topbar (should not be visible on login screen)
+  const topbar = document.getElementById('topbar');
+  if (topbar) {
+    topbar.style.display = 'none';
+    topbar.classList.remove('active');
+  }
+  
   clearErrors();
 }
 
 function showRegistration() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('registrationScreen').style.display = 'flex';
+  document.getElementById('splash').style.display = 'none';
+  
+  // Hide topbar
+  const topbar = document.getElementById('topbar');
+  if (topbar) {
+    topbar.style.display = 'none';
+    topbar.classList.remove('active');
+  }
+  
   clearErrors();
 }
 
 function showSetPassword(user) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('setPasswordScreen').style.display = 'flex';
+  document.getElementById('splash').style.display = 'none';
+  
+  // Hide topbar
+  const topbar = document.getElementById('topbar');
+  if (topbar) {
+    topbar.style.display = 'none';
+    topbar.classList.remove('active');
+  }
+  
   clearErrors();
 
   document.getElementById('setPwdUserName').textContent = user.name;
@@ -31,15 +59,43 @@ function showSetPassword(user) {
 function showForgotPassword() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('forgotPasswordScreen').style.display = 'flex';
+  document.getElementById('splash').style.display = 'none';
+  
+  // Hide topbar
+  const topbar = document.getElementById('topbar');
+  if (topbar) {
+    topbar.style.display = 'none';
+    topbar.classList.remove('active');
+  }
+  
   clearErrors();
 }
 
 function showResetPassword(token) {
-  document.getElementById('loginScreen').style.display = 'none';
+  // Hide all other screens - use !important via setProperty to override any CSS
+  const loginScreen = document.getElementById('loginScreen');
+  if (loginScreen) {
+    loginScreen.style.setProperty('display', 'none', 'important');
+  }
+  
   document.getElementById('registrationScreen').style.display = 'none';
   document.getElementById('setPasswordScreen').style.display = 'none';
   document.getElementById('forgotPasswordScreen').style.display = 'none';
-  document.getElementById('resetPasswordScreen').style.display = 'flex';
+  document.getElementById('splash').style.display = 'none';
+  
+  // Hide topbar (should not be visible during password reset)
+  const topbar = document.getElementById('topbar');
+  if (topbar) {
+    topbar.style.setProperty('display', 'none', 'important');
+    topbar.classList.remove('active');
+  }
+  
+  // Show reset password screen
+  const resetScreen = document.getElementById('resetPasswordScreen');
+  if (resetScreen) {
+    resetScreen.style.setProperty('display', 'flex', 'important');
+  }
+  
   document.getElementById('resetPwdToken').value = token;
   clearErrors();
 }
@@ -98,6 +154,11 @@ async function handleLogin() {
   btn.disabled = true;
   btn.textContent = 'Signing in...';
 
+  // Show loading overlay
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Signing in...');
+  }
+
   try {
     const data = await api('POST', '/api/login', { staffId, password });
     console.log('[Login] Server response:', data);
@@ -141,6 +202,9 @@ async function handleLogin() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Sign In →';
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -179,6 +243,11 @@ async function handleRegistration() {
   btn.disabled = true;
   btn.textContent = 'Creating account...';
 
+  // Show loading overlay
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Creating your account...');
+  }
+
   try {
     const data = await api('POST', '/api/register', {
       name, email, staffId, role, password
@@ -198,6 +267,9 @@ async function handleRegistration() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Create Account →';
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -232,6 +304,11 @@ async function handleSetPassword() {
   btn.disabled = true;
   btn.textContent = 'Setting password...';
 
+  // Show loading overlay
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Setting your password...');
+  }
+
   try {
     const data = await api('POST', '/api/set-password', { staffId, password });
 
@@ -263,6 +340,9 @@ async function handleSetPassword() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Set Password & Continue →';
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -285,6 +365,11 @@ async function handleForgotPassword() {
   btn.disabled = true;
   btn.textContent = 'Sending...';
 
+  // Show loading overlay
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Sending reset link...');
+  }
+
   try {
     await api('POST', '/api/forgot-password', { email });
 
@@ -299,6 +384,9 @@ async function handleForgotPassword() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Send Reset Link →';
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
@@ -333,6 +421,11 @@ async function handleResetPassword() {
   btn.disabled = true;
   btn.textContent = 'Resetting password...';
 
+  // Show loading overlay
+  if (typeof window.showLoading === 'function') {
+    window.showLoading('Resetting your password...');
+  }
+
   try {
     await api('POST', '/api/reset-password', { token, password });
 
@@ -346,42 +439,59 @@ async function handleResetPassword() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Reset Password →';
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    }
   }
 }
 
 // ─── Check for reset token in URL ───
-function checkForResetToken() {
+// Returns a promise that resolves to true if reset password screen was shown, false otherwise
+async function checkForResetToken() {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
 
   if (token) {
-    // Verify token
-    api('GET', '/api/verify-reset-token/' + token)
-      .then(data => {
-        if (data.valid) {
-          document.getElementById('resetPwdWelcome').textContent = `Hi ${data.name}, enter your new password below`;
-          showResetPassword(token);
+    try {
+      // Verify token (no loading overlay here as it's handled by initialization)
+      const data = await api('GET', '/api/verify-reset-token/' + token);
+      if (data.valid) {
+        document.getElementById('resetPwdWelcome').textContent = `Hi ${data.name}, enter your new password below`;
+        showResetPassword(token);
 
-          // Clean URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-          alert('Invalid or expired reset link. Please request a new one.');
-          showLogin();
-        }
-      })
-      .catch(err => {
-        console.error('[ResetToken] Verification error:', err);
-        alert('Failed to verify reset link. Please try again.');
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return true; // Reset password screen was shown
+      } else {
+        alert('Invalid or expired reset link. Please request a new one.');
         showLogin();
-      });
+        return false;
+      }
+    } catch (err) {
+      console.error('[ResetToken] Verification error:', err);
+      alert('Failed to verify reset link. Please try again.');
+      showLogin();
+      return false;
+    }
   }
+  return false; // No token found
 }
 
 // ─── Check for existing session (restore login on page reload) ───
 async function checkSession() {
   try {
     console.log('[Session] Checking for existing session...');
-    const data = await api('GET', '/api/session');
+    
+    // Set a timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Session check timeout')), 10000); // 10 second timeout
+    });
+    
+    // Race between API call and timeout
+    const data = await Promise.race([
+      api('GET', '/api/session'),
+      timeoutPromise
+    ]);
 
     if (!data.authenticated) {
       console.log('[Session] No active session');
@@ -421,6 +531,7 @@ async function checkSession() {
     return true;
   } catch (err) {
     console.error('[Session] Check failed:', err);
+    // On error, assume no session and show login
     return false;
   }
 }

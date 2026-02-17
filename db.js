@@ -9,7 +9,6 @@ const path = require('path');
 let pool;
 
 async function init() {
-  console.log('first')
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.DB_SSL === 'false' ? false : (
@@ -19,12 +18,10 @@ async function init() {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000
   });
-  console.log('secondary')
 
   // Test connection
   const client = await pool.connect();
   try {
-    console.log('tomiwa')
     await client.query('SELECT NOW()');
     console.log('[DB] PostgreSQL connected successfully');
   } finally {
