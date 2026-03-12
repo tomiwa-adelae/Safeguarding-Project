@@ -21,7 +21,7 @@
 set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────
-DOMAIN="safeguarding.projectstarlgs.com"
+DOMAIN="safeguarding.zionstand.com"
 EMAIL="adelaetomiwa6@gmail.com"      # Used for expiry notifications
 CERTBOT_DIR="./certbot"
 RSA_KEY_SIZE=4096
