@@ -24,6 +24,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSPHRASE = process.env.ADMIN_PASSPHRASE || 'ProjectSTAR2025';
 
+// ─── Trust Proxy ───
+// Required when running behind Nginx (or any reverse proxy).
+// Tells Express to trust X-Forwarded-Proto so that:
+//   • session cookies are marked Secure (HTTPS-only) in production
+//   • express-rate-limit uses the real client IP, not the proxy IP
+//   • req.ip and req.protocol reflect the actual client values
+app.set('trust proxy', 1);
+
 // ─── Middleware ───
 app.use(helmet({
   contentSecurityPolicy: {
@@ -44,9 +52,19 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Session Configuration ───
+// NOTE: We pass conObject (not pool) so the session store creates its own
+// connection using DATABASE_URL. This is necessary because db.init() — which
+// populates the main pool — runs asynchronously inside start(), after the
+// middleware chain is registered. Passing db.getPool() here would hand the
+// store an undefined pool reference and silently break all session operations.
 app.use(session({
   store: new pgSession({
-    pool: db.getPool(),
+    conObject: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DB_SSL === 'false' ? false
+         : (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost')
+             ? { rejectUnauthorized: false } : false)
+    },
     tableName: 'sessions',
     pruneSessionInterval: 60 * 15 // Clean up expired sessions every 15 minutes
   }),
@@ -1038,6 +1056,13 @@ app.get('/api/modules/:moduleId', async (req, res) => {
     console.error('[API] Get module error:', err.message);
     res.status(500).json({ error: 'Server error.' });
   }
+});
+
+// ─── Health Check ───
+// Called by the Docker HEALTHCHECK in the Dockerfile and by the Nginx
+// healthcheck in docker-compose.yml. Must be defined BEFORE the SPA catch-all.
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // ─── Catch-all: serve index.html for SPA ───

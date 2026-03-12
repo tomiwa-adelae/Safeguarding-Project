@@ -1,5 +1,50 @@
+# ═══════════════════════════════════════════════════════════════
+# .dockerignore — files excluded from the Docker build context
+# ═══════════════════════════════════════════════════════════════
+# Keep this list tight: a smaller build context = faster builds
+
+# Dependencies (reinstalled inside the container via npm ci)
 node_modules
+
+# Environment files — secrets must never end up in the image
 .env
+.env.*
+!.env.production
+
+# Git history
 .git
 .gitignore
-README.md
+
+# Docker infrastructure files (not needed inside the container)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Nginx config (mounted as a volume, not baked into the app image)
+nginx/
+
+# Certbot data (mounted as a volume)
+certbot/
+
+# Deployment and local tooling scripts
+init-letsencrypt.sh
+deploy.sh
+
+# Logs
+*.log
+logs/
+
+# OS / editor artefacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Backup files left in public/
+public/*.backup
+public/*.bak*
+
+# Test and documentation files
+test-*.js
+*.md
+README*

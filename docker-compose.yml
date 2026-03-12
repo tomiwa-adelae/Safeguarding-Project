@@ -1,46 +1,138 @@
 # ═══════════════════════════════════════════════════════════════
-# Project STAR Safeguarding Course — Docker Compose
+# Project STAR Safeguarding Course — Production Docker Compose
 # ═══════════════════════════════════════════════════════════════
-# Run:  docker-compose up -d
-# Stop: docker-compose down
-# Logs: docker-compose logs -f app
+#
+# Services:
+#   nginx   — Reverse proxy, SSL termination, HTTP→HTTPS redirect
+#   app     — Node.js Express application
+#   db      — PostgreSQL 16 database
+#   certbot — Let's Encrypt SSL certificate management
+#
+# First-time setup:
+#   1. Copy .env.production → .env and fill in all values
+#   2. Run:  ./init-letsencrypt.sh
+#   3. Run:  docker compose up -d
+#
+# Day-to-day:
+#   Start:   docker compose up -d
+#   Stop:    docker compose down
+#   Logs:    docker compose logs -f app
+#   Rebuild: docker compose up -d --build app
+#   DB CLI:  docker compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB
 # ═══════════════════════════════════════════════════════════════
 
 services:
-  app:
-    build: .
-    container_name: safeguarding-course
+
+  # ── Nginx: reverse proxy + SSL termination ────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: safeguarding-nginx
+    restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - app
+    networks:
+      - web
+    healthcheck:
+      # /healthz is served directly by Nginx on port 80 with a plain 200 response
+      # (defined in nginx/conf.d/app.conf). Using /api/health would 301→HTTPS
+      # and wget would fail on the self-signed cert for localhost.
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ── Node.js application ───────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: safeguarding-app
+    restart: unless-stopped
+    env_file: .env
     environment:
-      PORT: 3000
       NODE_ENV: production
-      DATABASE_URL: postgresql://postgres:starpass@db:5432/safeguarding
+      PORT: 3000
+      # Connects to the db service on the internal Docker network
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       DB_SSL: "false"
-      ADMIN_PASSPHRASE: ${ADMIN_PASSPHRASE:-ProjectSTAR2025}
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
+    networks:
+      - web
+      - internal
+    # No port mapping — all traffic is routed through Nginx
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
 
+  # ── PostgreSQL 16 ─────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     container_name: safeguarding-db
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: safeguarding
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: starpass
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
+      # Persistent data volume — survives container restarts/rebuilds
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      # Init scripts: run once on fresh database (alphabetical order)
+      # schema.sql creates all base tables
+      # 001 seeds modules and quiz questions
+      # 002 adds password auth columns, sessions table, and reset tokens
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./migrations/001_seed_modules_and_questions.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./migrations/002_add_password_authentication.sql:/docker-entrypoint-initdb.d/03-auth.sql:ro
+    networks:
+      - internal
+    # Intentionally NOT exposing port 5432 to the host for security.
+    # The app connects via the internal Docker network only.
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+      start_period: 20s
 
+  # ── Certbot: Let's Encrypt certificate renewal ────────────────
+  certbot:
+    image: certbot/certbot:latest
+    container_name: safeguarding-certbot
+    restart: unless-stopped
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # Check for renewal every 12 hours (certs expire after 90 days,
+    # but certbot only renews when they are <30 days from expiry)
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done'"
+    networks:
+      - web
+
+# ── Networks ──────────────────────────────────────────────────
+networks:
+  # web: Nginx ↔ App ↔ Certbot (public-facing)
+  web:
+    driver: bridge
+  # internal: App ↔ DB only (completely isolated, no external access)
+  internal:
+    driver: bridge
+    internal: true
+
+# ── Volumes ───────────────────────────────────────────────────
 volumes:
   pgdata:
     driver: local
